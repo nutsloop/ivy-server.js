@@ -1,0 +1,81 @@
+{
+  "name": "@ivy-industries/server",
+  "version": "1.0.0-alpha.1",
+  "license": "Apache-2.0",
+  "description": "Facilitating & Enhancing Network Strength.",
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "os": [
+    "!win32"
+  ],
+  "main": "index.js",
+  "bin": {
+    "ivy-server": "./bin/server.js"
+  },
+  "types": "./types/index.d.ts",
+  "files": [
+    "bin",
+    "lib",
+    "index.js",
+    "types"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "./scripts/build.sh",
+    "clean": "./scripts/clean.sh",
+    "chmod.u+x-fix": "./scripts/chmod.u+x.sh",
+    "lint": "npx eslint . --ext .ts",
+    "lint-fix": "npx eslint . --fix --ext .ts",
+    "tsc-watch": "npx tsc-watch --onSuccess \"sh ./scripts/chmod.u+x.sh\"",
+    "eslint-watch": "npx esw --watch . --ext .ts --fix",
+    "update": "npx npm-check-updates -u",
+    "nodemon-run-example": "nodemon -w ./ ./example/server.js --ext .js"
+  },
+  "dependencies": {
+    "@ivy-industries/ansi": "^1.0.0-alpha.1",
+    "@ivy-industries/async-import-meta-resolve": "^1.0.0-alpha.1",
+    "@ivy-industries/cross-path": "^1.0.0-alpha.1",
+    "@ivy-industries/input": "^1.0.0-alpha.1",
+    "@ivy-industries/watcher": "^1.0.0-alpha.1",
+    "ws": "^8.17.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "@types/ws": "^8.5.10",
+    "@typescript-eslint/eslint-plugin": "^7.8.0",
+    "@typescript-eslint/parser": "^7.8.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-perfectionist": "^2.10.0",
+    "eslint-watch": "^8.0.0",
+    "nodemon": "^3.1.0",
+    "npm-check-updates": "^16.14.20",
+    "tsc-watch": "^6.2.0",
+    "typescript": "^5.4.5"
+  },
+  "keywords": [
+    "node.js server",
+    "esmodule",
+    "threads",
+    "cluster"
+  ],
+  "funding": [
+    {
+      "type": "github",
+      "url": "https://github.com/sponsors/simonedelpopolo"
+    }
+  ],
+  "author": {
+    "name": "ivy-industries",
+    "email": "grow@ivy.run",
+    "url": "https://github.com/ivy-industries"
+  },
+  "homepage": "https://github.com/ivy-industries/server#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ivy-industries/server.git"
+  }
+}

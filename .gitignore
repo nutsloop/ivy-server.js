@@ -1,0 +1,12 @@
+bin
+lib
+types
+routes
+public
+vroutes
+example
+log
+*.js
+!/src/**
+!eslint.config.js
+!.ncurc.js
