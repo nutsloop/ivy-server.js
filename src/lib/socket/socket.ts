@@ -44,8 +44,6 @@ export async function socket( socket_config_path: string, threads?: number ): Pr
   cluster.on( 'fork', ( _Worker ) => {} );
   cluster.on( 'online', ( _Worker ) => {} );
   cluster.on( 'disconnect', ( _Worker ) => {} );
-  cluster.on( 'message', ( _Worker, message, _Handle ) => {
-    process.stdout.write( `${ message }\n` );
-  } );
+  cluster.on( 'message', ( _Worker, _message, _Handle ) => {} );
 
 }
