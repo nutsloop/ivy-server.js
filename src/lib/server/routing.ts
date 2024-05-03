@@ -132,6 +132,22 @@ export class RoutingServerResponse<K extends IncomingMessage>
     super( k );
   }
 
+  #cut_user_agent( incoming_user_agent: string ): string {
+
+    const browserRegex = /(Chrome|Firefox|Safari|Edge|Opera)\/[\d.]+/;
+
+    const match = incoming_user_agent.match( browserRegex );
+
+    if ( match && match[ 1 ] ) {
+
+      return match[ 1 ];
+    }
+    else {
+
+      return `${incoming_user_agent.slice( 0, 10 )}...`;
+    }
+  }
+
   #log_all_extname(): string{
 
     if( this.incoming.has ( 'url' ) ){
@@ -266,18 +282,6 @@ export class RoutingServerResponse<K extends IncomingMessage>
     if ( ! this.writableEnded ) {
       this.end();
     }
-  }
-
-  cut_user_agent( incoming_user_agent: string | undefined ): string {
-
-    if ( incoming_user_agent === undefined ) {
-      return 'unknown';
-    }
-    if ( routing.get( 'cut-user-agent' ) ) {
-      return '×';
-    }
-
-    return incoming_user_agent;
   }
 
   end( data?: ( () => void ) | Buffer | Uint8Array | string, encoding?: ( () => void ) & BufferEncoding, callback?: () => void ): this {
@@ -441,6 +445,19 @@ export class RoutingServerResponse<K extends IncomingMessage>
       this.writeHead( 500 );
       this.end( Buffer.from( 'internal server error' ) );
     }
+  }
+
+  user_agent( incoming_user_agent: string | undefined ): string {
+
+    if ( incoming_user_agent === undefined ) {
+      return 'Agent/Unknown';
+    }
+
+    if ( routing.get( 'cut-user-agent' ) ) {
+      return this.#cut_user_agent( incoming_user_agent );
+    }
+
+    return incoming_user_agent;
   }
 
   get bytesRead(): number {

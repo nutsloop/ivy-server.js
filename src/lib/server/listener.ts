@@ -31,7 +31,7 @@ export async function listener<K extends IncomingMessage>( IncomingMessage: Rout
     ServerResponse.incoming.set( 'url', IncomingMessage.url || 'unknown' );
     ServerResponse.incoming.set( 'httpVersion', IncomingMessage.httpVersion );
     ServerResponse.incoming.set( 'host', IncomingMessage.headers.host || <string>IncomingMessage.headers[ ':authority' ] );
-    ServerResponse.incoming.set( 'user-agent', ServerResponse.cut_user_agent( IncomingMessage.headers[ 'user-agent' ] ) );
+    ServerResponse.incoming.set( 'user-agent', ServerResponse.user_agent( IncomingMessage.headers[ 'user-agent' ] ) );
     ServerResponse.incoming.set( 'referer', IncomingMessage.headers.referer || 'unknown' );
     ServerResponse.incoming.set( 'time', new Date().toISOString() );
     ServerResponse.incoming.set( 'data', data );
