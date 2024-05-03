@@ -1,5 +1,5 @@
 import { Path } from '@ivy-industries/cross-path';
-import { detect } from 'encoding-japanese';
+import Encoding from 'encoding-japanese';
 import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { ServerResponse } from 'node:http';
@@ -440,7 +440,7 @@ export class RoutingServerResponse<K extends IncomingMessage>
 
       process.stderr.write( `${ error.message }\n`.red() );
       process.stderr.write( `data: ${ json }\n`.b_blue() );
-      process.stderr.write( `encoding of the data ${ detect( json.toString() ) }\n`.green() );
+      process.stderr.write( `encoding of the data ${ Encoding.detect( json.toString() ) }\n`.green() );
       process.stderr.write( `${ this.incoming.get( 'ip_address' ) }`.red() );
       if ( return_plain ){
         return json;

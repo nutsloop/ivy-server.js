@@ -15,7 +15,7 @@ export async function definition(): Promise<void> {
     name: 'ivy-server',
     npmjs: 'https://www.npmjs.com/settings/ivy-industries/packages',
     usage: 'ivy-server [--global-flag=[options]] <command> [--flag=[options]]',
-    version: '1.0.0-alpha.6',
+    version: '1.0.0-alpha.7',
     website: 'https://server.ivy.run'
   } );
 
