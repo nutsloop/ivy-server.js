@@ -132,6 +132,17 @@ export class RoutingServerResponse<K extends IncomingMessage>
     super( k );
   }
 
+  #log_all_extname(): string{
+
+    if( this.incoming.has ( 'url' ) ){
+      return path.extname( this.incoming.get( 'url' ) );
+    }
+
+    this.incoming.set( 'url', '/unknown' );
+
+    return '';
+  }
+
   #log_color( message: string, color: string, decoration: boolean|string = false ): string{
 
     if( ! routing.get( 'log-color' ) ){
@@ -271,22 +282,18 @@ export class RoutingServerResponse<K extends IncomingMessage>
 
   end( data?: ( () => void ) | Buffer | Uint8Array | string, encoding?: ( () => void ) & BufferEncoding, callback?: () => void ): this {
 
-    const performance_now = performance.now();
-
-    routing.get( 'last-since' ).set( 'end', performance_now );
-    routing.get( 'response-time' ).set( 'end', performance_now );
-    this.#counter.push( 1 );
-    this.#set_last_since();
+    super.end( data, encoding, callback );
 
     if ( this.log ) {
 
-      let file_extension = '';
-      try{
-        file_extension = path.extname( this.incoming.get( 'url' ) );
-      }
-      catch( error ){
-        process.stderr.write( error.message );
-      }
+      const performance_now = performance.now();
+
+      routing.get( 'last-since' ).set( 'end', performance_now );
+      routing.get( 'response-time' ).set( 'end', performance_now );
+      this.#counter.push( 1 );
+      this.#set_last_since();
+
+      const file_extension = this.#log_all_extname();
 
       this.bytesWritten = this.bytesWritten > 0 ? this.bytesWritten : this.socket.bytesWritten;
 
@@ -299,8 +306,6 @@ export class RoutingServerResponse<K extends IncomingMessage>
         this.#log_data();
       }
     }
-
-    super.end( data, encoding, callback );
 
     return this;
   }
@@ -428,11 +433,11 @@ export class RoutingServerResponse<K extends IncomingMessage>
     }
     catch( error ){
 
+      process.stderr.write( error.message );
       if ( return_plain ){
         return json;
       }
 
-      process.stderr.write( error.message );
       this.writeHead( 500 );
       this.end( Buffer.from( 'internal server error' ) );
     }
