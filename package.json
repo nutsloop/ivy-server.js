@@ -1,6 +1,6 @@
 {
   "name": "@ivy-industries/server",
-  "version": "1.0.0-alpha.4",
+  "version": "1.0.0-alpha.5",
   "license": "Apache-2.0",
   "description": "Facilitating & Enhancing Network Strength.",
   "type": "module",
@@ -39,7 +39,7 @@
     "@ivy-industries/ansi": "^1.0.0-alpha.1",
     "@ivy-industries/async-import-meta-resolve": "^1.0.0-alpha.1",
     "@ivy-industries/cross-path": "^1.0.0-alpha.1",
-    "@ivy-industries/input": "^1.0.0-alpha.1",
+    "@ivy-industries/input": "^1.0.0-alpha.2",
     "@ivy-industries/watcher": "^1.0.0-alpha.1",
     "ws": "^8.17.0"
   },
