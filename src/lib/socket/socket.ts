@@ -37,10 +37,7 @@ export async function socket( socket_config_path: string, threads?: number ): Pr
     cluster.fork();
   } );
 
-  cluster.on( 'listening', ( Worker, address ) => {
-    process.stdout.write( ` ${'|'.red()}${'   wrk'.red().underline()}(${ Worker.id }) ${Worker.process.pid} listening on ${ address.address.magenta() }:${ address.port.toString().yellow() }\n` );
-  } );
-
+  cluster.on( 'listening', ( _Worker, _address ) => {} );
   cluster.on( 'fork', ( _Worker ) => {} );
   cluster.on( 'online', ( _Worker ) => {} );
   cluster.on( 'disconnect', ( _Worker ) => {} );

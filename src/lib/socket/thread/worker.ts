@@ -1,8 +1,11 @@
 #!/usr/bin/env -S node
 
+import { extends_proto } from '@ivy-industries/ansi';
 import cluster from 'node:cluster';
 
 import { SocketConfig } from '../socket.js';
+
+extends_proto();
 
 process.title = `ivy-socket-${ cluster.worker.id }`;
 // splice the first two elements from the process.argv array
@@ -34,6 +37,7 @@ else if( ! exportedModule.includes( 'default' ) ){
 }
 
 const socketConfig: SocketConfig = config.default;
+
 if( socketConfig.type === 'tls' ){
 
   const createServer = await import( 'node:tls' ).then( module => module.createServer );
@@ -42,9 +46,7 @@ if( socketConfig.type === 'tls' ){
     ...socketConfig.socketOptions || {}
   }, socketConfig.listener );
 
-  socket.listen( socketConfig.port, socketConfig.hostname, () => {
-    console.log( `Socket server listening ${socketConfig.hostname}:${socketConfig.port.toString()}` );
-  } );
+  socket.listen( socketConfig.port, socketConfig.hostname, listeningListener );
 
   socket.on( 'error', ( error ) => {
     process.stderr.write( error.message );
@@ -59,12 +61,29 @@ else if( socketConfig.type === 'sock' ){
     ...socketConfig.socketOptions || {}
   }, socketConfig.listener );
 
-  socket.listen( socketConfig.socketPath || `${process.cwd()}/ivy.sock`, () => {
-    console.log( `Socket server listening ${socketConfig.socketPath}` );
-  } );
+  socket.listen( socketConfig.socketPath || `${process.cwd()}/ivy.sock`, listeningListener );
 
   socket.on( 'error', ( error ) => {
     process.stderr.write( error.message );
     process.exit( 1 );
   } );
+}
+
+function listeningListener(){
+
+  const pid = cluster.worker.process.pid;
+  const id = cluster.worker.id;
+  let address: string;
+  let port: string;
+
+  if( socketConfig.type === 'tls' ){
+    address = socketConfig.hostname.magenta();
+    port = `:${socketConfig.port.toString().yellow()}`;
+  }
+  else if( socketConfig.type === 'sock' ){
+    address = socketConfig.socketPath.magenta();
+    port = '';
+  }
+
+  process.stdout.write( ` ${'|'.red()}${'   soc'.red().underline()}(${ id }) ${pid} listening on ${ address }${ port }\n` );
 }
