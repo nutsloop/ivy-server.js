@@ -3,13 +3,6 @@ import type { Route } from './routing.js';
 import { entry_point } from '../logic.js';
 import { routing } from './routing.js';
 
-/**
- * todo: finish the documentation.
- *       - add the rest of the methods.
- *       - add the rest of the properties and options.
- *       - add the rest of the types.
- *       - must comply with the cli version of ivy-server.
- */
 export type CreateServerOptions =
   Map<'address' | 'exec' | 'served-by' | 'www-root', string> &
   Map<'command', 'cluster' | 'spin'> &
@@ -22,9 +15,8 @@ export type CreateServerOptions =
     'log-all' |
     'log-color' |
     'to-index-html', null> &
-  Map<'https' | 'live-reload' | 'routes', null | string> &
-  Map<'log-persistent' | 'socket', null | number> &
-  Map<'virtual-routes', string>;
+  Map<'https' | 'live-reload' | 'routes' | 'vroutes', null | string> &
+  Map<'log-persistent' | 'socket', null | number>;
 
 export interface IServer{
   create( options?: CreateServerOptions ): void;
@@ -42,41 +34,47 @@ class BaseServer implements IServer{
   #argv: string[] = [];
   constructor() {/**/}
 
+  #null_or_option( value: null|number|string ): string{
+    return value === null ? '' : `=${value}`;
+  }
+
   /**
    * Creates a server with the given options.
    */
   create( options?: CreateServerOptions ): void {
 
-    // todo: handle cluster.
-    // todo: and handle already clustered.
-    const argv: string[] = [];
+    let argv: null|string[] = null;
 
-    if( options?.has( 'ease' ) ){
-      argv.push( '--ease' );
-    }
-    if( options?.has( 'ease-cluster' ) ){
-      argv.push( '--ease-cluster' );
-    }
-    if( options?.has( 'socket' ) ){
-      const socket = options.get( 'socket' );
-      argv.push( `--socket${socket === null ? '' : `=${socket}`}` );
-    }
-    options?.delete( 'ease' );
-    options?.delete( 'ease-cluster' );
-    options?.delete( 'socket' );
+    if( options instanceof Map && options.size > 0 ) {
 
-    argv.push( options?.get( 'command' ) || 'spin' );
-    options?.delete( 'command' );
+      argv = [];
 
-    if( options ) {
+      if( options.has( 'ease' ) ){
+        argv.push( '--ease' );
+        options.delete( 'ease' );
+      }
 
-      for( const [ key, value ] of options as Map<string, string> ) {
-        const isVoid = value === null ? '' : `=${value}`;
-        argv.push( `--${key}${isVoid}` );
+      if( options.has( 'ease-cluster' ) ){
+        argv.push( '--ease-cluster' );
+        options.delete( 'ease-cluster' );
+      }
+
+      if( options.has( 'socket' ) ){
+        argv.push( `--socket${this.#null_or_option( options.get( 'socket' ) )}` );
+        options.delete( 'socket' );
+      }
+
+      argv.push( options?.get( 'command' ) || 'spin' );
+      options.delete( 'command' );
+
+      if( options.size > 0 ){
+        for( const [ key, value ] of options as Map<string, string> ) {
+          argv.push( `--${key}${this.#null_or_option( value )}` );
+        }
       }
     }
 
-    this.argv = argv;
+    this.argv = argv ?? [ 'spin' ];
   }
 
   async route( path: string, route: Route ): Promise<void> {
