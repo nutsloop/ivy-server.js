@@ -1,6 +1,7 @@
 import type { IncomingMessage } from 'node:http';
 
 import cluster from 'node:cluster';
+import { randomUUID } from 'node:crypto';
 
 import type {
   RequestData,
@@ -9,6 +10,8 @@ import type {
   RoutingServerResponse
 } from './routing.js';
 
+import { crc } from '../function/crc.js';
+import { uint8 } from '../function/uint8.js';
 import { routing } from './routing.js';
 
 export async function listener<K extends IncomingMessage>( IncomingMessage: RoutingIncomingMessage, ServerResponse: RoutingServerResponse<K> ): Promise<void> {
@@ -26,6 +29,8 @@ export async function listener<K extends IncomingMessage>( IncomingMessage: Rout
 
   if( ServerResponse.log ){
     ServerResponse.bytesRead = IncomingMessage.socket.bytesRead;
+    ServerResponse.incoming.set( 'data-error', '' );
+    ServerResponse.incoming.set( 'id', await generate_id() );
     ServerResponse.incoming.set( 'ip_address', IncomingMessage.ip_address );
     ServerResponse.incoming.set( 'method', IncomingMessage.method );
     ServerResponse.incoming.set( 'url', IncomingMessage.url || 'unknown' );
@@ -34,7 +39,7 @@ export async function listener<K extends IncomingMessage>( IncomingMessage: Rout
     ServerResponse.incoming.set( 'user-agent', ServerResponse.user_agent( IncomingMessage.headers[ 'user-agent' ] ) );
     ServerResponse.incoming.set( 'referer', IncomingMessage.headers.referer || 'no-referer' );
     ServerResponse.incoming.set( 'time', new Date().toISOString() );
-    ServerResponse.incoming.set( 'data', data );
+    ServerResponse.incoming.set( 'request', data );
   }
 
   if( ServerResponse.routes_active ){
@@ -56,4 +61,10 @@ export async function listener<K extends IncomingMessage>( IncomingMessage: Rout
   }
 
   ServerResponse.close();
+}
+
+async function generate_id(): Promise<string> {
+
+  return crc( await uint8( randomUUID() ) )
+    .catch( () => randomUUID().replace( /-/g, '' ).slice( 0, 8 ) );
 }
