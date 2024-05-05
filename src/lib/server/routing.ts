@@ -17,7 +17,11 @@ const path = new Path();
  * todo - refactor if necessary
  */
 type Routing =
-  Map<'address' | 'exec' | 'routes-path' | 'served-by-name' | 'www-root', string> &
+  Map<'address' |
+    'exec' |
+    'routes-path' |
+    'served-by-name' |
+    'www-root', string> &
   Map<'cluster' |
     'cut-user-agent' |
     'ease' |
@@ -89,8 +93,10 @@ interface IVirtualRouteValidationSegments{
 }
 
 type IncomingNotData =
+'data-error' |
 'host' |
 'httpVersion' |
+'id' |
 'ip_address' |
 'method' |
 'referer' |
@@ -99,7 +105,8 @@ type IncomingNotData =
 'user-agent';
 
 type ServerResponseIncoming =
-  Map<'data', RequestData> &
+  Map<'error', string[]> &
+  Map<'request', RequestData> &
   Map<IncomingNotData, string>;
 
 /****************************************************************************************
@@ -175,11 +182,13 @@ export class RoutingServerResponse<K extends IncomingMessage>
 
   #log_data(): void {
 
+    this.incoming.set( 'error', [] );
     let method_section = this.#log_color( this.incoming.get( 'method' ), 'red' );
     method_section += `(${ this.#log_color( this.bytesRead.toFixed(), 'green', 'strong' ) })`;
     method_section += `(${ this.#log_color( this.bytesWritten.toFixed(), 'red', 'strong' ) })`;
 
     const message: string[] = [
+      this.#log_color( this.incoming.get( 'id' ), 'b_white', 'bg_black' ),
       method_section,
       this.incoming.get( 'url' ),
       this.#log_color( this.statusCode.toString(), 'magenta' ),
@@ -208,13 +217,38 @@ export class RoutingServerResponse<K extends IncomingMessage>
     }
 
     process.stdout.write( `${ message.join( ' ' ) }\n` );
+    if( this.incoming.get( 'data-error' ).length > 0 ){
+      process.stderr.write( `${ this.incoming.get( 'data-error' ) }\n` );
+    }
+    if( this.incoming.get( 'error' ).length > 0 ){
+      process.stderr.write( `${ this.incoming.get( 'error' ).join( ', ' ) }\n` );
+    }
     routing.get( 'last-since' ).set( 'start', performance.now() );
+  }
+
+  #log_data_incoming_check(){
+
+    if( ! this.incoming.has( 'request' ) ){
+      this.incoming.get ( 'error' ).push( '[data] is missing.' );
+
+      return;
+    }
+
+    if( ! this.incoming.get( 'request' ).has( 'url_params' ) ){
+      this.incoming.get( 'error' ).push( '[url_params] is missing.' );
+    }
+
+    if( ! this.incoming.get( 'request' ).has( 'data' ) ){
+      this.incoming.get( 'error' ).push( '[data] is missing.' );
+    }
   }
 
   #log_data_request(): boolean|string{
 
-    const post_data: Buffer|undefined = this.incoming.get( 'data' ).get( 'data' );
-    const get_data: URLSearchParams|undefined = this.incoming.get( 'data' ).get( 'url_params' );
+    this.#log_data_incoming_check();
+
+    const post_data: Buffer|undefined = this.incoming?.get( 'request' )?.get( 'data' );
+    const get_data: URLSearchParams|undefined = this.incoming?.get( 'request' )?.get( 'url_params' );
 
     // todo: refactor this. It's a mess.
     const _post_data: number|object = post_data !== undefined && post_data.length > 0
@@ -311,6 +345,7 @@ export class RoutingServerResponse<K extends IncomingMessage>
         this.#log_data();
       }
     }
+    // send request for the ip address to nmap. it is a standalone server maybe written in c++.
 
     return this;
   }
@@ -436,12 +471,12 @@ export class RoutingServerResponse<K extends IncomingMessage>
 
       return JSON.parse( json );
     }
-    catch( error ){
+    catch( _e ){
 
-      process.stderr.write( `${ error.message }\n`.red() );
-      process.stderr.write( `data: ${ json }\n`.b_blue() );
-      process.stderr.write( `encoding of the data ${ Encoding.detect( json.toString() ) }\n`.green() );
-      process.stderr.write( `${ this.incoming.get( 'ip_address' ) }`.red() );
+      const encoded = Encoding.detect( json );
+      const encoding = encoded === false ? 'not detected' : ` (${ encoded })`.magenta();
+      const error = `${'incoming not JSON data: '}${this.incoming.get( 'id' ).b_white().bg_black()} ${this.incoming.get( 'ip_address' ).b_red()} ${encoding}`;
+      this.incoming.set( 'data-error', error );
       if ( return_plain ){
         return json;
       }
