@@ -31,7 +31,6 @@
     "lint": "npx eslint . --ext .ts",
     "lint-fix": "npx eslint . --fix --ext .ts",
     "tsc-watch": "npx tsc-watch --onSuccess \"sh ./scripts/chmod.u+x.sh\"",
-    "eslint-watch": "npx esw --watch . --ext .ts --fix",
     "update": "npx npm-check-updates -u",
     "nodemon-run-example": "nodemon -w ./ ./example/server.js --ext .js"
   },
@@ -52,7 +51,6 @@
     "@typescript-eslint/parser": "^7.8.0",
     "eslint": "^8.57.0",
     "eslint-plugin-perfectionist": "^2.10.0",
-    "eslint-watch": "^8.0.0",
     "nodemon": "^3.1.0",
     "npm-check-updates": "^16.14.20",
     "tsc-watch": "^6.2.0",
