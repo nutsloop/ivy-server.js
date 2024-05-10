@@ -16,6 +16,7 @@ import { routing } from './routing.js';
 
 export async function listener<K extends IncomingMessage>( IncomingMessage: RoutingIncomingMessage, ServerResponse: RoutingServerResponse<K> ): Promise<void> {
 
+  // fix: in some cases the IncomingMessage is not a valid object or it is undefined.
   IncomingMessage.set_ip_address();
   const data: RequestData = new Map();
 
@@ -34,11 +35,11 @@ export async function listener<K extends IncomingMessage>( IncomingMessage: Rout
     ServerResponse.incoming.set( 'ip_address', IncomingMessage.ip_address );
     ServerResponse.incoming.set( 'method', IncomingMessage.method );
     ServerResponse.incoming.set( 'url', IncomingMessage.url || 'unknown' );
-    ServerResponse.incoming.set( 'httpVersion', IncomingMessage.httpVersion );
+    ServerResponse.incoming.set( 'httpVersion', `http/${IncomingMessage.httpVersion}` );
     ServerResponse.incoming.set( 'host', IncomingMessage.headers.host || <string>IncomingMessage.headers[ ':authority' ] );
     ServerResponse.incoming.set( 'user-agent', ServerResponse.user_agent( IncomingMessage.headers[ 'user-agent' ] ) );
     ServerResponse.incoming.set( 'referer', IncomingMessage.headers.referer || 'no-referer' );
-    ServerResponse.incoming.set( 'time', new Date().toISOString() );
+    ServerResponse.incoming.set( 'date', new Date().toISOString() );
     ServerResponse.incoming.set( 'request', data );
   }
 

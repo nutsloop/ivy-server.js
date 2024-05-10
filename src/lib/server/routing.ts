@@ -23,6 +23,7 @@ type Routing =
     'served-by-name' |
     'www-root', string> &
   Map<'cluster' |
+    'control-room' |
     'cut-user-agent' |
     'ease' |
     'ease-cluster' |
@@ -39,7 +40,7 @@ type Routing =
     'to-index-html', boolean> &
   Map<'counter', 1[]> &
   Map<'cpus' | 'port', number> &
-  Map<'last-since' | 'response-time', Map<'end' | 'start', number>> &
+  Map<'response-time', Map<'end', number>> &
   Map<'routes', Map<string, Route>> &
   Map<'virtual-routes', string[]>;
 
@@ -60,6 +61,7 @@ routing.set( 'address', '0.0.0.0' );
 routing.set( 'served-by', false );
 routing.set( 'served-by-name', 'ivy-server' );
 routing.set( 'counter', [] );
+routing.set( 'control-room', false );
 routing.set( 'log', false );
 routing.set( 'log-color', false );
 routing.set( 'log-all', false );
@@ -79,10 +81,6 @@ routing.set( 'cluster', false );
 routing.set( 'routes', new Map() );
 routing.set( 'secure', false );
 routing.set( 'cut-user-agent', false );
-routing.set( 'last-since', new Map( [
-  [ 'end', performance.now() ],
-  [ 'start', performance.now() ]
-] ) );
 routing.set( 'response-time', new Map( [
   [ 'end', performance.now() ]
 ] ) );
@@ -94,13 +92,13 @@ interface IVirtualRouteValidationSegments{
 
 type IncomingNotData =
 'data-error' |
+'date' |
 'host' |
 'httpVersion' |
 'id' |
 'ip_address' |
 'method' |
 'referer' |
-'time' |
 'url' |
 'user-agent';
 
@@ -125,7 +123,6 @@ export class RoutingServerResponse<K extends IncomingMessage>
   #bytesWritten: number = 0;
   #counter: 1[] = routing.get( 'counter' );
   #isRoute: boolean = false;
-  #last_since: number = routing.get( 'last-since' ).get( 'end' ) - routing.get( 'last-since' ).get( 'start' );
   #response_time: number = performance.now();
   #route: Route;
   #wrk: 0 | number = 0;
@@ -187,6 +184,24 @@ export class RoutingServerResponse<K extends IncomingMessage>
     method_section += `(${ this.#log_color( this.bytesRead.toFixed(), 'green', 'strong' ) })`;
     method_section += `(${ this.#log_color( this.bytesWritten.toFixed(), 'red', 'strong' ) })`;
 
+    /**
+     * log format:
+     * - unique id
+     * - incoming method
+     * - requested url
+     * - status code
+     * - ip address incoming
+     * - hostname requested
+     * - http version [http/1.1 | http/2(not supported yet)]
+     * - secure [⚷ yellow | ⚷ red] -> [https | http]
+     * - requests count per worker in cluster mode or total requests count in non-cluster mode
+     * - wrk (id)[pid] if in cluster mode | (0)[pid] if not in cluster mode
+     * - user-agent
+     * - referer
+     * - response time
+     * - date
+     * - POST|PUT|PATCH|DELETE|GET data if any
+     */
     const message: string[] = [
       this.#log_color( this.incoming.get( 'id' ), 'b_white', 'bg_black' ),
       method_section,
@@ -205,8 +220,7 @@ export class RoutingServerResponse<K extends IncomingMessage>
       this.#log_color( this.incoming.get( 'user-agent' ), 'green' ),
       this.incoming.get( 'referer' ),
       `${ this.get_response_time().toFixed( 4 ) }ms`,
-      `${ this.get_last_since().toFixed( 4 ) }s`,
-      this.#log_color( this.incoming.get( 'time' ), 'yellow' ),
+      this.#log_color( this.incoming.get( 'date' ), 'yellow' ),
       this.#log_data_request() === false
         ? ''
         : <string>this.#log_data_request()
@@ -216,14 +230,22 @@ export class RoutingServerResponse<K extends IncomingMessage>
       process.send( { 'log': message } );
     }
 
+    // if the control room is active, send the log to the control room.
+    if( routing.get( 'control-room' ) ){
+      process.send( { 'control-room': message.join( '|' ) } );
+    }
+
+    //logging the message to the console.
     process.stdout.write( `${ message.join( ' ' ) }\n` );
+
     if( this.incoming.get( 'data-error' ).length > 0 ){
       process.stderr.write( `${ this.incoming.get( 'data-error' ) }\n` );
     }
+
     if( this.incoming.get( 'error' ).length > 0 ){
       process.stderr.write( `${ this.incoming.get( 'error' ).join( ', ' ) }\n` );
     }
-    routing.get( 'last-since' ).set( 'start', performance.now() );
+
   }
 
   #log_data_incoming_check(){
@@ -275,11 +297,6 @@ export class RoutingServerResponse<K extends IncomingMessage>
 
   }
 
-  #set_last_since() {
-
-    this.#last_since = routing.get( 'last-since' ).get( 'end' ) - routing.get( 'last-since' ).get( 'start' );
-  }
-
   #virtual_routes_segments( url: string, virtual_route: string ): IVirtualRouteValidationSegments{
 
     const url_array = url.split( '/' ).filter( segment => segment !== '' );
@@ -322,15 +339,11 @@ export class RoutingServerResponse<K extends IncomingMessage>
   end( data?: ( () => void ) | Buffer | Uint8Array | string, encoding?: ( () => void ) & BufferEncoding, callback?: () => void ): this {
 
     super.end( data, encoding, callback );
+    routing.get( 'response-time' ).set( 'end', performance.now() );
 
     if ( this.log ) {
 
-      const performance_now = performance.now();
-
-      routing.get( 'last-since' ).set( 'end', performance_now );
-      routing.get( 'response-time' ).set( 'end', performance_now );
       this.#counter.push( 1 );
-      this.#set_last_since();
 
       const file_extension = this.#log_all_extname();
 
@@ -348,11 +361,6 @@ export class RoutingServerResponse<K extends IncomingMessage>
     // send request for the ip address to nmap. it is a standalone server maybe written in c++.
 
     return this;
-  }
-
-  get_last_since(): number {
-
-    return this.#last_since / 1000;
   }
 
   get_response_time(): number {

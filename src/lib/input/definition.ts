@@ -4,7 +4,7 @@ import { globals } from './command/global/index.js';
 import { spin_cluster } from './command/spin|cluster/index.js';
 
 /**
- * <u>Defines the server CLI and sets all the defined commands and flags</u>.
+ * Defines the server CLI and sets all the defined commands and flags.
  */
 export async function definition(): Promise<void> {
 
@@ -15,7 +15,7 @@ export async function definition(): Promise<void> {
     name: 'ivy-server',
     npmjs: 'https://www.npmjs.com/settings/ivy-industries/packages',
     usage: 'ivy-server [--global-flag=[options]] <command> [--flag=[options]]',
-    version: '1.0.0-alpha.8',
+    version: '1.0.0-alpha.9',
     website: 'https://server.ivy.run'
   } );
 
