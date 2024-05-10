@@ -1,17 +1,19 @@
 #!/usr/bin/env -S node
-
+import { extends_proto } from '@ivy-industries/ansi';
 import cluster from 'node:cluster';
 
-import { LogConfig } from '../persistent.js';
+import type { LogConfig } from '../persistent.js';
+
+extends_proto();
 
 const process_id = [];
 process_id.push( cluster.worker.process.pid );
 
-process.title = `ivy-log-${ cluster.worker.id }`;
+process.title = `ivy-log(${ cluster.worker.id })`;
 // splice the first two elements from the process.argv array
 process.argv.splice( 0, 2 );
 
-if( process.argv.length > 1 ){
+if( process.argv.length > 2 ){
   process.stderr.write( 'Too many arguments.\n' );
   process.exit( 1 );
 }
@@ -38,10 +40,48 @@ else if( ! exportedModule.includes( 'default' ) ){
 
 const logConfig: LogConfig = config.default;
 
-if( logConfig?.init && typeof logConfig.init === 'function' ){
-  await logConfig.init();
+if( logConfig?.init ){
+
+  if( logConfig.init.constructor.name === 'AsyncFunction' ){
+
+    await logConfig.init( ...logConfig.init_args )
+      // @ts-expect-error: @allowed
+      .catch( console.error ) as Promise<void>;
+  }
+  else if( logConfig instanceof Function ){
+    logConfig.init( ...logConfig.init_args );
+  }
 }
 
-process.on( 'message', async ( message ) => {
-  await logConfig.callback( message );
+const control_room = process.argv[ 1 ] === 'true' ? true : false;
+
+// if control room is enabled
+if( control_room ){
+
+  // ping control room socket every second
+  // the control room will the send to the socket client memory usage.
+  setInterval( () => {
+    process.send( { 'control-room':{
+      heap_usage: {
+        heap: {
+          id: cluster.worker.id,
+          pid: process.pid,
+          usage: Number( ( process.memoryUsage().rss / ( 1024 * 1024 ) ).toFixed( 2 ) ),
+          wrk: 'log'
+        }
+      }
+    } } );
+  }, 1000 );
+}
+
+process.on( 'message', async ( message: string[] ) => {
+
+  if( logConfig.callback.constructor.name === 'AsyncFunction' ){
+      await logConfig.callback( message )
+        // @ts-expect-error: @allowed
+        .catch( console.error ) as Promise<void>;
+  }
+  else if( logConfig.callback instanceof Function ){
+    logConfig.callback( message );
+  }
 } );

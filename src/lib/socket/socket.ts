@@ -4,6 +4,8 @@ import type { TLSSocket, TlsOptions } from 'node:tls';
 import { Path } from '@ivy-industries/cross-path';
 import cluster from 'node:cluster';
 
+import { routing } from '../server/routing.js';
+
 const path = new Path();
 
 export interface SocketConfig{
@@ -24,7 +26,7 @@ export async function socket( socket_config_path: string, threads?: number ): Pr
   ];
 
   cluster.setupPrimary( {
-    args: [ socket_config_path ],
+    args: [ socket_config_path, routing.get( 'control-room' ).toString() ],
     exec: path.resolve( ...ivy_socket_worker )
   } );
 

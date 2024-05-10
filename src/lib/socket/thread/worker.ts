@@ -7,11 +7,11 @@ import { SocketConfig } from '../socket.js';
 
 extends_proto();
 
-process.title = `ivy-socket-${ cluster.worker.id }`;
+process.title = `ivy-socket(${ cluster.worker.id })`;
 // splice the first two elements from the process.argv array
 process.argv.splice( 0, 2 );
 
-if( process.argv.length > 1 ){
+if( process.argv.length > 2 ){
   process.stderr.write( 'Too many arguments.\n' );
   process.exit( 1 );
 }
@@ -34,6 +34,27 @@ else if( ! exportedModule.includes( 'default' ) ){
 
   console.log( 'socketConfig.js doesn\'t have the "default" export' );
   process.exit( 1 );
+}
+
+const control_room = process.argv[ 1 ] === 'true' ? true : false;
+
+// if control room is enabled
+if( control_room ){
+
+  // ping control room socket every second
+  // the control room will the send to the socket client memory usage.
+  setInterval( () => {
+    process.send( { 'control-room':{
+      heap_usage: {
+        heap: {
+          id: cluster.worker.id,
+          pid: process.pid,
+          usage: Number( ( process.memoryUsage().rss / ( 1024 * 1024 ) ).toFixed( 2 ) ),
+          wrk: 'socket'
+        }
+      }
+    } } );
+  }, 1000 );
 }
 
 const socketConfig: SocketConfig = config.default;

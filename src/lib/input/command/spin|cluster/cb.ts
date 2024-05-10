@@ -3,11 +3,20 @@ import { CallBackArgvData, CallBackAsync } from '@ivy-industries/input';
 import cluster from 'node:cluster';
 import { cpus } from 'node:os';
 
+import { control_room } from '../../../control/room.js';
+import { log_persistent } from '../../../log/persistent.js';
 import { routing } from '../../../server/routing.js';
+import { socket } from '../../../socket/socket.js';
+
+const path = new Path();
 
 type SpinClusterData =
   CallBackArgvData<'address' | 'exec', string > &
-  CallBackArgvData<'cpus' | 'port', number > &
+  CallBackArgvData<'control-room', boolean > &
+  CallBackArgvData<'cpus' |
+    'log-persistent' |
+    'port' |
+    'socket', number > &
   CallBackArgvData<'https',
     Map<'cert' | 'dhparam' | 'key', string> | null >;
 
@@ -15,6 +24,13 @@ const server_pid = [];
 
 export const spin_cluster_cb: CallBackAsync = async ( data: SpinClusterData, spin: boolean ): Promise<void> => {
 
+  if( cluster.isPrimary ){
+    process.stdout.write( ` ${'|'.red()}${'ivy'.red().underline()}(0) ${process.pid}\n` );
+  }
+
+  await spawn_control_room( data.has( 'control-room' ) );
+  await spawn_log_persistent( data.has( 'log-persistent' ), data.get( 'log-persistent' ) );
+  await spawn_socket( data.has( 'socket' ), data.get( 'socket' ) );
   if( spin ){
 
     await server( data );
@@ -26,7 +42,6 @@ export const spin_cluster_cb: CallBackAsync = async ( data: SpinClusterData, spi
 
     if ( cluster.isPrimary ) {
 
-      process.stdout.write( `ivy-server ${ process.pid } is running\n` );
       const path_to_ivy_server_exec = [
         path.dirname( new URL( import.meta.url ).pathname ),
         '..',
@@ -45,17 +60,16 @@ export const spin_cluster_cb: CallBackAsync = async ( data: SpinClusterData, spi
         args: process.argv,
         exec: clusterSetup.get( 'exec' ),
       } );
-
       for ( let i = 0; i < clusterSetup.get( 'nCPUS' ); i ++ ) {
         server_pid.push( cluster.fork().process.pid );
       }
 
-      cluster.on( 'exit', ( Worker, code, signal ) => {
+      cluster.on( 'exit', ( _Worker, code, signal ) => {
 
-        if( server_pid.includes( Worker.process.pid ) ){
+        if( server_pid.includes( _Worker.process.pid ) ){
 
-          server_pid.splice( server_pid.indexOf( Worker.process.pid ), 1 );
-          process.stdout.write( `worker -> ${ Worker.id } died with code [${code}] & signal[${ signal }]\n` );
+          server_pid.splice( server_pid.indexOf( _Worker.process.pid ), 1 );
+          process.stdout.write( `worker -> ${ _Worker.id } died with code [${code}] & signal[${ signal }]\n` );
           cluster.fork();
         }
       } );
@@ -75,6 +89,25 @@ export const spin_cluster_cb: CallBackAsync = async ( data: SpinClusterData, spi
     }
     else if( cluster.isWorker ){
 
+      // if control room is enabled
+      if( routing.get( 'control-room' ) ){
+        // ping control room socket every second
+        // the control room will the send to the socket client memory usage.
+        setInterval( () => {
+          process.send( { 'control-room':{
+            heap_usage: {
+              heap: {
+                id: cluster.worker.id,
+                pid: process.pid,
+                usage: Number( ( process.memoryUsage().rss / ( 1024 * 1024 ) ).toFixed( 2 ) ),
+                wrk: 'worker-server'
+              }
+            }
+          } } );
+        }, 1000 );
+      }
+
+      process.title = `ivy-server(${ cluster.worker.id })`;
       await server( data );
     }
   }
@@ -95,5 +128,60 @@ async function server( data: SpinClusterData ): Promise<void> {
 
     await ( await import( '../../../server/type/http.js' ) )
       .http( port, address );
+  }
+}
+
+async function spawn_control_room( invoked_flag: boolean ): Promise<void> {
+
+  if( invoked_flag ){
+    if( cluster.isPrimary ) {
+
+      const controlRoomConfig = await path.isFile( path.resolve( ...[ process.cwd(), 'controlRoomConfig.js' ] ) ).catch( () => false );
+      if( typeof controlRoomConfig === 'string' ){
+
+        await control_room( controlRoomConfig );
+      }
+      else{
+        process.stderr.write( 'No controlRoom.js file found.' );
+        process.exit( 1 );
+      }
+    }
+  }
+}
+
+async function spawn_log_persistent( invoked_flag: boolean, threads: number ): Promise<void> {
+
+
+  if( invoked_flag ){
+    if( cluster.isPrimary ) {
+
+      const logConfigFile = await path.isFile( path.resolve( ...[ process.cwd(), 'logConfig.js' ] ) ).catch( () => false );
+      if( typeof logConfigFile === 'string' ){
+
+        await log_persistent( logConfigFile, threads );
+      }
+      else{
+        process.stderr.write( 'No logConfig.js file found.' );
+        process.exit( 1 );
+      }
+    }
+  }
+}
+
+async function spawn_socket( invoked_flag: boolean, threads: number ): Promise<void> {
+
+  if( invoked_flag ){
+    if( cluster.isPrimary ) {
+
+      const socketConfigFile = await path.isFile( path.resolve( ...[ process.cwd(), 'socketConfig.js' ] ) ).catch( () => false );
+      if( typeof socketConfigFile === 'string' ){
+
+        await socket( socketConfigFile, threads );
+      }
+      else{
+        process.stderr.write( 'No socketConfig.js file found.' );
+        process.exit( 1 );
+      }
+    }
   }
 }
