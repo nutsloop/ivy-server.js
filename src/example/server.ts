@@ -10,9 +10,11 @@ config.set( 'exec', `${process.cwd()}/example/server.js` );
 config.set( 'log', null );
 config.set( 'cpus', 4 );
 config.set( 'ease-cluster', null );
+config.set( 'socket', 1 );
 config.set( 'routes', null );
 config.set( 'log-persistent', 1 );
 config.set( 'log-color', null );
+config.set( 'control-room', null );
 await server.route( '/path', async( _req:IncomingMessage, res:ServerResponse ) => {
   res.writeHead( 200, { 'Content-Type': 'text/plain' } );
   res.write( 'Hello, World!' );

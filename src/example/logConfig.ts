@@ -17,15 +17,23 @@ const logConfig: LogConfig = {
       process.exit( 1 );
     } );
   },
-  init: async () => {
+  // example on how to pass the arguments to the init function based on init_args.
+  init: async ( string: string, number: number ) => {
+
+    // showing the way to pass the arguments to the init function.
+    console.log( string, number );
+
     const log_directory = await path.isValid( log_path ).catch( () => false );
+
     if( log_directory === false ) {
       await path.mkdir( log_path ).catch( ( error ) => {
         process.stderr.write( error.message );
         process.exit( 1 );
       } );
     }
-  }
+  },
+  // example on how to pass the arguments to the init function.
+  init_args: [ 'args example for the logConfig init function', 42 ]
 };
 
 export default logConfig;

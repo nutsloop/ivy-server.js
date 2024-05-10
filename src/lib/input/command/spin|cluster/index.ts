@@ -3,6 +3,7 @@ import { command, flag } from '@ivy-industries/input';
 import { command_call } from '../../../logic.js';
 import { spin_cluster_cb } from './cb.js';
 import { address_cb } from './flag/address/cb.js';
+import { control_room_cb } from './flag/control-room/cb.js';
 import { cpus_cb } from './flag/cpus/cb.js';
 import { cut_user_agent_cb } from './flag/cut-user-agent/cb.js';
 import { exec_cb } from './flag/exec/cb.js';
@@ -16,6 +17,7 @@ import { log_persistent_cb } from './flag/log-persistent/cb.js';
 import { port_cb } from './flag/port/cb.js';
 import { routes_cb } from './flag/routes/cb.js';
 import { served_by_cb } from './flag/served-by/cb.js';
+import { socket_cb } from './flag/socket/cb.js';
 import { to_index_html_cb } from './flag/to-index-html/cb.js';
 import { virtual_routes_cb } from './flag/virtual-routes/cb.js';
 import { www_root_cb } from './flag/www-root/cb.js';
@@ -26,6 +28,8 @@ import {
   cluster_exec_usage,
   spin_cluster_address_description,
   spin_cluster_address_usage,
+  spin_cluster_control_room_description,
+  spin_cluster_control_room_usage,
   spin_cluster_cut_user_agent_description,
   spin_cluster_cut_user_agent_usage,
   spin_cluster_hot_routes_description,
@@ -48,6 +52,8 @@ import {
   spin_cluster_routes_usage,
   spin_cluster_served_by_description,
   spin_cluster_served_by_usage,
+  spin_cluster_socket_description,
+  spin_cluster_socket_usage,
   spin_cluster_to_index_html_description,
   spin_cluster_to_index_html_usage,
   spin_cluster_virtual_routes_description,
@@ -67,6 +73,18 @@ export async function spin_cluster(){
     has_flag: true,
     rest: [ invoked_command === 'spin' ],
     usage: spin_cluster_usage
+  } );
+
+  await flag( '--socket', {
+    alias: 'socket',
+    cb: {
+      fn: socket_cb,
+      type: 'async'
+    },
+    description: spin_cluster_socket_description,
+    is_flag_of: [ 'spin', 'cluster' ],
+    multi_type: [ 'number', 'void' ],
+    usage: spin_cluster_socket_usage
   } );
 
   await flag( [ '--port', '-p' ], {
@@ -229,6 +247,18 @@ export async function spin_cluster(){
     is_flag_of: [ 'spin', 'cluster' ],
     precedence: 1,
     usage: spin_cluster_to_index_html_usage,
+    void: true
+  } );
+
+  await flag( '--control-room', {
+    alias: 'control-room',
+    cb: {
+      fn: control_room_cb,
+      type: 'async'
+    },
+    description: spin_cluster_control_room_description,
+    is_flag_of: [ 'spin', 'cluster' ],
+    usage: spin_cluster_control_room_usage,
     void: true
   } );
 

@@ -26,6 +26,9 @@ export const spin_cluster_log_persistent_description = `Log requests on file/db 
 `;
 export const spin_cluster_log_persistent_usage = 'ivy-server spin|cluster --log --log-persistent';
 
+export const spin_cluster_control_room_description = `create a socket connection to stream server data and statiistic to a client application`;
+export const spin_cluster_control_room_usage = 'ivy-server spin|cluster --control-room';
+
 export const spin_cluster_cut_user_agent_description = `cut the user agent from the log`;
 export const spin_cluster_cut_user_agent_usage = 'ivy-server spin|cluster --cut-user-agent';
 
@@ -67,3 +70,8 @@ export const cluster_cpus_usage = 'ivy-server cluster --cpus=[number]';
 
 export const cluster_exec_description = `The path to the file to execute while clustering`;
 export const cluster_exec_usage = 'ivy-server cluster --exec=[path]';
+
+export const spin_cluster_socket_description = `Activate socket(tls|sock)connection for the server.
+To activate the socket connection, you must provide a config file in the root of your project named "socketConfig.js".
+see example in the documentation.`;
+export const spin_cluster_socket_usage = 'ivy-server spin --socket';
