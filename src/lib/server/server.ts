@@ -6,8 +6,8 @@ import { routing } from './routing.js';
 export type CreateServerOptions =
   Map<'address' | 'exec' | 'served-by' | 'www-root', string> &
   Map<'command', 'cluster' | 'spin'> &
-  Map<'cpus' | 'port', number> &
-  Map<'cut-user-agent' |
+  Map<'control-room' |
+    'cut-user-agent' |
     'ease' |
     'ease-cluster' |
     'hot-routes' |
@@ -15,6 +15,7 @@ export type CreateServerOptions =
     'log-all' |
     'log-color' |
     'to-index-html', null> &
+  Map<'cpus' | 'port', number> &
   Map<'https' | 'live-reload' | 'routes' | 'vroutes', null | string> &
   Map<'log-persistent' | 'socket', null | number>;
 
@@ -59,10 +60,6 @@ class BaseServer implements IServer{
         options.delete( 'ease-cluster' );
       }
 
-      if( options.has( 'socket' ) ){
-        argv.push( `--socket${this.#null_or_option( options.get( 'socket' ) )}` );
-        options.delete( 'socket' );
-      }
 
       argv.push( options?.get( 'command' ) || 'spin' );
       options.delete( 'command' );
