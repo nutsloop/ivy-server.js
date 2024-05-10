@@ -8,5 +8,5 @@ example
 log
 *.js
 !/src/**
-!eslint.config.js
-!.ncurc.js
+target
+Cargo.lock
