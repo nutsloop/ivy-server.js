@@ -1,8 +1,15 @@
+import { extends_proto } from '@ivy-industries/ansi';
+
 import type { Route } from './routing.js';
 
 import { entry_point } from '../logic.js';
 import { routing } from './routing.js';
 
+extends_proto();
+
+/**
+ * Abstraction layer Type of the cli commands|options server.
+ */
 export type CreateServerOptions =
   Map<'address' | 'exec' | 'served-by' | 'www-root', string> &
   Map<'command', 'cluster' | 'spin'> &
@@ -16,9 +23,13 @@ export type CreateServerOptions =
     'log-color' |
     'to-index-html', null> &
   Map<'cpus' | 'port', number> &
-  Map<'https' | 'live-reload' | 'routes' | 'vroutes', null | string> &
-  Map<'log-persistent' | 'socket', null | number>;
+  Map<'http2' | 'https' | 'live-reload' | 'vroutes', null | string> &
+  Map<'log-persistent' | 'socket', null | number> &
+  Map<'routes', Map<string, string> | null | string>;
 
+/**
+ * The Ivy-Server interface.
+ */
 export interface IServer{
   create( options?: CreateServerOptions ): void;
   route( path: string, route: Route ): Promise<void>;
@@ -60,13 +71,30 @@ class BaseServer implements IServer{
         options.delete( 'ease-cluster' );
       }
 
-
       argv.push( options?.get( 'command' ) || 'spin' );
       options.delete( 'command' );
 
       if( options.size > 0 ){
-        for( const [ key, value ] of options as Map<string, string> ) {
-          argv.push( `--${key}${this.#null_or_option( value )}` );
+
+        for( const [ key, value ] of options as Map<string, Map<string, string> | string> ) {
+
+          if( value instanceof Map ){
+
+            let kvp = '!';
+            for( const [ k, v ] of value ){
+              kvp += `${k}:${v}|`;
+            }
+
+            if( kvp.endsWith( '|' ) ){
+              kvp = kvp.slice( 0, - 1 );
+            }
+
+            argv.push( `--${key}=${kvp}` );
+          }
+          else{
+            argv.push( `--${key}${this.#null_or_option( value )}` );
+          }
+
         }
       }
     }
@@ -74,14 +102,18 @@ class BaseServer implements IServer{
     this.argv = argv ?? [ 'spin' ];
   }
 
+  /**
+   * Routes a path to a route.
+   */
   async route( path: string, route: Route ): Promise<void> {
 
-    return new Promise( ( resolve, reject ) => {
+    return new Promise( ( resolve, _reject ) => {
 
       const routes = routing.get( 'routes' );
       if( routes.has( path ) ){
 
-        reject( `Route ${path} already exists` );
+        process.stderr.write( `Route [${path.red()}] already exists\n` );
+        process.exit( 1 );
       }
       else{
 
@@ -98,14 +130,15 @@ class BaseServer implements IServer{
 
   async virtual_routes( path: string | string[] ): Promise<void>{
 
-    return new Promise( ( resolve, reject ) => {
+    return new Promise( ( resolve, _reject ) => {
 
       const virtual_routes = routing.get( 'virtual-routes' );
       if( typeof path === 'string' ){
 
         if( virtual_routes.includes( path ) ){
 
-          reject( `Virtual route ${path} already exists` );
+          process.stderr.write( `Virtual route [${path.red()}] already exists\n` );
+          process.exit( 1 );
         }
         else{
 
@@ -119,7 +152,8 @@ class BaseServer implements IServer{
 
           if( virtual_routes.includes( virtual_route ) ){
 
-            reject( `Virtual route ${virtual_route} already exists` );
+            process.stderr.write( `Virtual route [${virtual_route.red()}] already exists\n` );
+            process.exit( 1 );
           }
           else{
 
