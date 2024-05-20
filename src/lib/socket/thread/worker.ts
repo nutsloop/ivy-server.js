@@ -54,7 +54,7 @@ if( control_room ){
         }
       }
     } } );
-  }, 1000 );
+  }, 500 );
 }
 
 const socketConfig: SocketConfig = config.default;
