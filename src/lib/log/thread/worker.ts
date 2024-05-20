@@ -71,7 +71,7 @@ if( control_room ){
         }
       }
     } } );
-  }, 1000 );
+  }, 500 );
 }
 
 process.on( 'message', async ( message: string[] ) => {
