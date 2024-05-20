@@ -71,5 +71,5 @@ export async function control_room( control_room_config_file_path: string ): Pro
         }
       }
     } } );
-  }, 1000 );
+  }, 500 );
 }

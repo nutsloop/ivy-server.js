@@ -75,7 +75,7 @@ process.on( 'message', ( message: {'control-room': OfMessage } ) => {
         heap: {
           id: cluster.worker.id,
           pid: cluster.worker.process.pid,
-          usage: Number( ( process.memoryUsage().rss / ( 1024 * 1024 ) ).toFixed( 0 ) ),
+          usage: Number( ( process.memoryUsage().rss / ( 1024 * 1024 ) ).toFixed( 2 ) ),
           wrk: 'control-room'
         }
       } );
@@ -124,8 +124,9 @@ async function listener( socket: Socket ){
   // if there is data in the streaming array, send it to the client
   // and remove it from the array
   setInterval( () => {
+
     if( streaming.length > 0 ){
       socket.write( streaming.shift() );
     }
-  }, 1000 );
+  }, 100 );
 }
