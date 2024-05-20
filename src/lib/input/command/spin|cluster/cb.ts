@@ -17,7 +17,7 @@ type SpinClusterData =
     'log-persistent' |
     'port' |
     'socket', number > &
-  CallBackArgvData<'https',
+  CallBackArgvData<'http2' | 'https',
     Map<'cert' | 'dhparam' | 'key', string> | null >;
 
 const server_pid = [];
@@ -104,7 +104,7 @@ export const spin_cluster_cb: CallBackAsync = async ( data: SpinClusterData, spi
               }
             }
           } } );
-        }, 1000 );
+        }, 500 );
       }
 
       process.title = `ivy-server(${ cluster.worker.id })`;
@@ -122,6 +122,12 @@ async function server( data: SpinClusterData ): Promise<void> {
 
     await ( await import( '../../../server/type/https.js' ) )
       .https( port, address, data.get( 'https' ) );
+
+  }
+  else if( data.get( 'http2' ) === null || data.get( 'http2' ) ){
+
+    await ( await import( '../../../server/type/http2.js' ) )
+      .http2( port, address, data.get( 'http2' ) );
 
   }
   else{
