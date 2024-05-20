@@ -17,6 +17,18 @@ import { routing } from './routing.js';
 export async function listener<K extends IncomingMessage>( IncomingMessage: RoutingIncomingMessage, ServerResponse: RoutingServerResponse<K> ): Promise<void> {
 
   // fix: in some cases the IncomingMessage is not a valid object or it is undefined.
+  if( ! IncomingMessage ){
+
+    ServerResponse.writeHead( 400 );
+    ServerResponse.end();
+
+    const message = 'IncomingMessage is not a valid object';
+    const date = new Date().toISOString();
+    process.stderr.write( `${date} ${message}\n` );
+
+    return;
+  }
+
   IncomingMessage.set_ip_address();
   const data: RequestData = new Map();
 
@@ -25,7 +37,7 @@ export async function listener<K extends IncomingMessage>( IncomingMessage: Rout
   }
 
   ServerResponse.wrk = cluster.worker?.id || 0;
-  data.set( 'url_params', await IncomingMessage.get() );
+  data.set( 'url_params', IncomingMessage.url_search_params );
   data.set( 'data', await IncomingMessage.post() );
 
   if( ServerResponse.log ){
