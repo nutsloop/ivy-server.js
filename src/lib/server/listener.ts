@@ -29,6 +29,19 @@ export async function listener<K extends IncomingMessage>( IncomingMessage: Rout
     return;
   }
 
+  // double slash in the URL is not allowed
+  if( IncomingMessage.url.startsWith( '//' ) ){
+
+    ServerResponse.writeHead( 400 );
+    ServerResponse.end();
+
+    const message = 'Invalid URL with double slash';
+    const date = new Date().toISOString();
+    process.stderr.write( `${date} ${message}\n` );
+
+    return;
+  }
+
   IncomingMessage.set_ip_address();
   const data: RequestData = new Map();
 
