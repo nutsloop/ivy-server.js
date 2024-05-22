@@ -143,6 +143,7 @@ export class RoutingServerResponse<K extends IncomingMessage>
   #route: Route;
   #wrk: 0 | number = 0;
   incoming: ServerResponseIncoming = new Map();
+  listener_error = false;
   log: boolean = routing.get( 'log' );
   routes_active: boolean = routing.get( 'routes-active' );
   routes_path: string = routing.get( 'routes-path' );
@@ -355,23 +356,26 @@ export class RoutingServerResponse<K extends IncomingMessage>
   end( data?: ( () => void ) | Buffer | Uint8Array | string, encoding?: ( () => void ) & BufferEncoding, callback?: () => void ): this {
 
     super.end( data, encoding, callback );
-    routing.get( 'response-time' ).set( 'end', performance.now() );
 
-    if ( this.log ) {
+    if( this.listener_error ){
+      routing.get( 'response-time' ).set( 'end', performance.now() );
 
-      this.#counter.push( 1 );
+      if ( this.log ) {
 
-      const file_extension = this.#log_all_extname();
+        this.#counter.push( 1 );
 
-      this.bytesWritten = this.bytesWritten > 0 ? this.bytesWritten : this.socket.bytesWritten;
+        const file_extension = this.#log_all_extname();
 
-      if ( routing.get( 'log-all' ) ) {
+        this.bytesWritten = this.bytesWritten > 0 ? this.bytesWritten : this.socket.bytesWritten;
 
-        this.#log_data();
-      }
-      else if ( file_extension === '.html' || file_extension.length === 0 ) {
+        if ( routing.get( 'log-all' ) ) {
 
-        this.#log_data();
+          this.#log_data();
+        }
+        else if ( file_extension === '.html' || file_extension.length === 0 ) {
+
+          this.#log_data();
+        }
       }
     }
     // send request for the ip address to nmap. it is a standalone server maybe written in c++.

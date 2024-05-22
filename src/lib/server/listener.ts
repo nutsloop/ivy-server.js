@@ -19,6 +19,7 @@ export async function listener<K extends IncomingMessage>( IncomingMessage: Rout
   // fix: in some cases the IncomingMessage is not a valid object or it is undefined.
   if( ! IncomingMessage ){
 
+    this.listener_error = true;
     ServerResponse.writeHead( 400 );
     ServerResponse.end();
 
@@ -32,6 +33,7 @@ export async function listener<K extends IncomingMessage>( IncomingMessage: Rout
   // double slash in the URL is not allowed
   if( IncomingMessage.url.startsWith( '//' ) ){
 
+    this.listener_error = true;
     ServerResponse.writeHead( 400 );
     ServerResponse.end();
 
