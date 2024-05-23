@@ -357,7 +357,7 @@ export class RoutingServerResponse<K extends IncomingMessage>
 
     super.end( data, encoding, callback );
 
-    if( this.listener_error ){
+    if( this.listener_error === false ){
       routing.get( 'response-time' ).set( 'end', performance.now() );
 
       if ( this.log ) {
