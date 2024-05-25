@@ -196,7 +196,6 @@ export class RoutingServerResponse<K extends IncomingMessage>
 
   #log_data(): void {
 
-    this.incoming.set( 'error', [] );
     let method_section = this.#log_color( this.incoming.get( 'method' ), 'red' );
     method_section += `(${ this.#log_color( this.bytesRead.toFixed(), 'green', 'strong' ) })`;
     method_section += `(${ this.#log_color( this.bytesWritten.toFixed(), 'red', 'strong' ) })`;
@@ -819,7 +818,6 @@ export class RoutingHttp2ServerResponse<K extends ServerHttp2Stream> extends Htt
 
   #log_data(): void {
 
-    this.incoming.set( 'error', [] );
     let method_section = this.#log_color( this.incoming.get( 'method' ), 'red' );
     method_section += `(${ this.#log_color( this.bytesRead.toFixed(), 'green', 'strong' ) })`;
     method_section += `(${ this.#log_color( this.bytesWritten.toFixed(), 'red', 'strong' ) })`;

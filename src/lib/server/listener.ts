@@ -16,6 +16,10 @@ import { routing } from './routing.js';
 
 export async function listener<K extends IncomingMessage>( IncomingMessage: RoutingIncomingMessage, ServerResponse: RoutingServerResponse<K> ): Promise<void> {
 
+  // reset the errors
+  ServerResponse.incoming.set( 'error', [] );
+  ServerResponse.incoming.set( 'data-error', '' );
+
   // fix: in some cases the IncomingMessage is not a valid object or it is undefined.
   if( ! IncomingMessage ){
 
