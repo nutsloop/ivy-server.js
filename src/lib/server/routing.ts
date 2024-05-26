@@ -266,6 +266,10 @@ export class RoutingServerResponse<K extends IncomingMessage>
 
   #log_data_incoming_check(){
 
+    if ( ! this.incoming.has( 'error' ) || ! Array.isArray( this.incoming.get( 'error' ) ) ){
+      this.incoming.set( 'error', [] );
+    }
+
     if( ! this.incoming.has( 'request' ) ){
       this.incoming.get ( 'error' ).push( '[data] is missing.' );
 
@@ -887,6 +891,10 @@ export class RoutingHttp2ServerResponse<K extends ServerHttp2Stream> extends Htt
   }
 
   #log_data_incoming_check(){
+
+    if ( ! this.incoming.has( 'error' ) || ! Array.isArray( this.incoming.get( 'error' ) ) ){
+      this.incoming.set( 'error', [] );
+    }
 
     if( ! this.incoming.has( 'request' ) ){
       this.incoming.get ( 'error' ).push( '[data] is missing.' );
