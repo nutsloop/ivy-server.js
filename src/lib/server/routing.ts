@@ -880,12 +880,11 @@ export class RoutingHttp2ServerResponse<K extends ServerHttp2Stream> extends Htt
     //logging the message to the console.
     process.stdout.write( `${ message.join( ' ' ) }\n` );
 
-    if( this.incoming.get( 'data-error' ).length > 0 ){
-      process.stderr.write( `${ this.incoming.get( 'data-error' ) }\n` );
+    if ( this.incoming.has( 'data-error' ) && this.incoming.get( 'data-error' ).length > 0 ) {
+      process.stderr.write( `${this.incoming.get( 'data-error' )}\n` );
     }
-
-    if( this.incoming.get( 'error' ).length > 0 ){
-      process.stderr.write( `${ this.incoming.get( 'error' ).join( ', ' ) }\n` );
+    if ( this.incoming.has( 'error' ) && this.incoming.get( 'error' ).length > 0 ) {
+      process.stderr.write( `${this.incoming.get( 'error' ).join( ', ' )}\n` );
     }
 
   }
