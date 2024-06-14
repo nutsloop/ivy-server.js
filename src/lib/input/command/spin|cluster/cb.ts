@@ -100,7 +100,7 @@ export const spin_cluster_cb: CallBackAsync = async ( data: SpinClusterData, spi
                 id: cluster.worker.id,
                 pid: process.pid,
                 usage: Number( ( process.memoryUsage().rss / ( 1024 * 1024 ) ).toFixed( 2 ) ),
-                wrk: 'worker-server'
+                wrk: `worker-server-${ cluster.worker.id }`
               }
             }
           } } );
