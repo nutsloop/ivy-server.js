@@ -38,14 +38,24 @@ export async function socket( socket_config_path: string, threads?: number ): Pr
 
   cluster.on( 'exit', ( _Worker, _code, _signal ) => {
     if( worker_pid.includes( _Worker.process.pid ) ){
-      process.stdout.write( ` ${'|'.red()}${'   log'.red().underline()}(${ _Worker.id }) ${_Worker.process.pid} ${'exited'.red()}\n` );
+      process.stdout.write( ` ${'|'.red()}${'   soc'.red().underline()}(${ _Worker.id }) ${_Worker.process.pid} ${'exited'.red()}\n` );
       worker_pid.splice( worker_pid.indexOf( _Worker.process.pid ), 1 );
+
+      cluster.setupPrimary( {
+        args: [ socket_config_path, routing.get( 'control-room' ).toString() ],
+        exec: path.resolve( ...ivy_socket_worker )
+      } );
+
       worker_pid.push( cluster.fork().process.pid );
     }
   } );
 
   cluster.on( 'listening', ( _Worker, _address ) => {} );
-  cluster.on( 'fork', ( _Worker ) => {} );
+  cluster.on( 'fork', ( _Worker ) => {
+    if( worker_pid.includes( _Worker.process.pid ) ){
+      process.stdout.write( ` ${'|'.red()}${'   soc'.red().underline()}(${ _Worker.id }) ${_Worker.process.pid} ${'forked'.green()}\n` );
+    }
+  } );
   cluster.on( 'online', ( _Worker ) => {} );
   cluster.on( 'disconnect', ( _Worker ) => {} );
   cluster.on( 'message', ( _Worker, _message, _Handle ) => {} );
