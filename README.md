@@ -1,10 +1,10 @@
-# @ivy-industries/server
+# @nutsloop/ivy-server
 
 ___
 
 ###### Facilitating & Enhancing Network Strength.
 
-> ⚠ @ivy-industries/server shall be considered NOT ready for PRODUCTION.
+> ⚠ @nutsloop/ivy-server shall be considered NOT ready for PRODUCTION.
 
 ___
 
@@ -35,7 +35,7 @@ ___
 ## Installation
 
 ```shell
-npm install @ivy-industries/server
+npm install @nutsloop/ivy-server
 ```
 
 ___
@@ -50,3 +50,12 @@ npx ivy-server spin
 
 this will listen @ `0.0.0.0:3001`
 
+___
+
+### help manual
+
+```shell
+npx ivy-server --help
+```
+
+all the available flags/options to run the server :)

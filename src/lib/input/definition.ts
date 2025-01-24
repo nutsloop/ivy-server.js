@@ -10,13 +10,13 @@ export async function definition(): Promise<void> {
 
   // todo: set the global specification version for every commit
   set_cli_info_specification( {
-    description: 'ivy server',
-    github: 'https://github.com/ivy-industries/server',
+    description: 'nutsloop ivy-server',
+    github: 'https://github.com/nutsloop/ivy-server.js',
     name: 'ivy-server',
-    npmjs: 'https://www.npmjs.com/settings/ivy-industries/packages',
+    npmjs: 'https://www.npmjs.com/~nutsloop',
     usage: 'ivy-server [--global-flag=[options]] <command> [--flag=[options]]',
-    version: '1.0.0-alpha.19',
-    website: 'https://server.ivy.run'
+    version: '1.0.0-alpha.20',
+    website: 'https://github.com/sponsors/nutsloop'
   } );
 
   // set the global flags

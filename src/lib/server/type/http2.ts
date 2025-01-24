@@ -1,3 +1,4 @@
+/*
 import type { Http2Server } from 'node:http2';
 
 import { readFile } from 'node:fs/promises';
@@ -57,3 +58,4 @@ ${ dhparam instanceof Error ? dhparam.message.red() : `OKENT: ${dhparam_path} fo
 ` );
   }
 }
+*/

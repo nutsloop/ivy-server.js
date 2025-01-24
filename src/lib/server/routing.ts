@@ -1,13 +1,13 @@
-import type { IncomingHttpHeaders, ServerHttp2Stream } from 'node:http2';
+//import type { IncomingHttpHeaders, ServerHttp2Stream } from 'node:http2';
 import type { Socket } from 'node:net';
-import type { ReadableOptions } from 'node:stream';
+//import type { ReadableOptions } from 'node:stream';
 
 import { Path } from '@ivy-industries/cross-path';
 import Encoding from 'encoding-japanese';
 import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { IncomingMessage, ServerResponse } from 'node:http';
-import { Http2ServerRequest, Http2ServerResponse } from 'node:http2';
+//import { Http2ServerRequest, Http2ServerResponse } from 'node:http2';
 import { performance } from 'node:perf_hooks';
 import { inspect } from 'node:util';
 
@@ -57,9 +57,9 @@ type Routing =
   Map<'virtual-routes', string[]>;
 
 type ServerTypesResponse =
-  RoutingHttp2ServerResponse<ServerHttp2Stream> | RoutingServerResponse<IncomingMessage>
+  /*RoutingHttp2ServerResponse<ServerHttp2Stream> | */RoutingServerResponse<IncomingMessage>
 type ServerTypeIncoming =
-  RoutingHttp2IncomingMessage | RoutingIncomingMessage
+  /*RoutingHttp2IncomingMessage | */RoutingIncomingMessage
 /**
  * todo - rewrites Routes Type using rest args and dynamic types
  * todo - add the 'this' data type to the Route type
@@ -185,6 +185,10 @@ export class RoutingServerResponse<K extends IncomingMessage>
 
     if( ! routing.get( 'log-color' ) ){
       return message;
+    }
+
+    if( typeof message !== 'string' ){
+      return 'err: field is not a string'.red();
     }
 
     if( typeof decoration === 'string' ){
@@ -401,7 +405,7 @@ export class RoutingServerResponse<K extends IncomingMessage>
    */
   async sendRoute( IncomingMessage: RoutingIncomingMessage ): Promise<void> {
 
-    const intenal_server_error = Buffer.from( 'Internal Server Error' );
+    const internal_server_error = Buffer.from( 'Internal Server Error' );
     if ( this.route.constructor.name === 'AsyncFunction' ) {
 
       const response = await this.route( IncomingMessage, this );
@@ -412,8 +416,8 @@ export class RoutingServerResponse<K extends IncomingMessage>
       else if( response !== undefined && ! Buffer.isBuffer( response ) ){
         process.stderr.write( 'Error: AsyncFunction Routes that return instead of write|end the Buffer back to the client,\n' );
         process.stderr.write( 'must return(Buffer)\n' );
-        this.bytesWritten = intenal_server_error.length;
-        this.writeHead( 500 ).end( intenal_server_error );
+        this.bytesWritten = internal_server_error.length;
+        this.writeHead( 500 ).end( internal_server_error );
       }
     }
     else if ( this.route instanceof Promise || this.route instanceof Function ) {
@@ -429,8 +433,8 @@ export class RoutingServerResponse<K extends IncomingMessage>
       if( response !== undefined && ! Buffer.isBuffer( response ) ){
         process.stderr.write( 'Error: Routes that return instead of write|end the Buffer back to the client,\n' );
         process.stderr.write( 'and return a new Promise, must resolve(Buffer)\n' );
-        this.bytesWritten = intenal_server_error.length;
-        this.writeHead( 500 ).end( intenal_server_error );
+        this.bytesWritten = internal_server_error.length;
+        this.writeHead( 500 ).end( internal_server_error );
       }
     }
   }
@@ -756,11 +760,12 @@ export class RoutingIncomingMessage
   }
 }
 
+
 /****************************************************************************************
  * Represents the routing functionality for HTTP2 server responses and requests. *
  ****************************************************************************************/
 
-export class RoutingHttp2ServerResponse<K extends ServerHttp2Stream> extends Http2ServerResponse {
+/*export class RoutingHttp2ServerResponse<K extends ServerHttp2Stream> extends Http2ServerResponse {
   #bytesRead: number = 0;
   #bytesWritten: number = 0;
   #counter: 1[] = routing.get( 'counter' );
@@ -825,7 +830,7 @@ export class RoutingHttp2ServerResponse<K extends ServerHttp2Stream> extends Htt
     method_section += `(${ this.#log_color( this.bytesRead.toFixed(), 'green', 'strong' ) })`;
     method_section += `(${ this.#log_color( this.bytesWritten.toFixed(), 'red', 'strong' ) })`;
 
-    /**
+    /!**
      * log format:
      * - unique id
      * - incoming method
@@ -842,7 +847,7 @@ export class RoutingHttp2ServerResponse<K extends ServerHttp2Stream> extends Htt
      * - response time
      * - date
      * - POST|PUT|PATCH|DELETE|GET data if any
-     */
+     *!/
     const message: string[] = [
       this.#log_color( this.incoming.get( 'id' ), 'b_white', 'bg_black' ),
       method_section,
@@ -1013,7 +1018,7 @@ export class RoutingHttp2ServerResponse<K extends ServerHttp2Stream> extends Htt
     return routing.get( 'response-time' ).get( 'end' ) - this.#response_time;
   }
 
-  /**
+  /!**
    * todo: error handling for routes rejected promises and, async functions and try catch for sync functions
    * todo: probably better to specify the routes type
    * - SyncFunction
@@ -1021,7 +1026,7 @@ export class RoutingHttp2ServerResponse<K extends ServerHttp2Stream> extends Htt
    * - Promise
    * with a default export of Object|Map options.
    * this options should not be mandatory.
-   */
+   *!/
   async sendRoute( IncomingMessage: RoutingHttp2IncomingMessage ): Promise<void> {
 
     const intenal_server_error = Buffer.from( 'Internal Server Error' );
@@ -1201,13 +1206,13 @@ export class RoutingHttp2ServerResponse<K extends ServerHttp2Stream> extends Htt
 
     return this.#wrk;
   }
-}
+}*/
 
 /**
  * Class representing a routing incoming message.
  * @extends IncomingMessage - extends the IncomingMessage class.
  */
-export class RoutingHttp2IncomingMessage
+/*export class RoutingHttp2IncomingMessage
   extends Http2ServerRequest {
 
   #url_internal: string;
@@ -1224,12 +1229,12 @@ export class RoutingHttp2IncomingMessage
     super( request, headers, options, rawHeaders );
   }
 
-  /**
+  /!**
    * Retrieves the URLSearchParams object for the current URL.
    *
    * @returns {URLSearchParams | undefined} URLSearchParams object for the current URL.
    * Returns undefined if no parameters are found.
-   */
+   *!/
   #get(): URLSearchParams | undefined {
 
     try {
@@ -1275,7 +1280,7 @@ export class RoutingHttp2IncomingMessage
   }
 
 
-  /**
+  /!**
    * todo - add support for HEAD
    * todo - add support for OPTIONS
    * todo - add support for TRACE
@@ -1283,7 +1288,7 @@ export class RoutingHttp2IncomingMessage
    * todo - add support for PATCH
    * todo - add support for PUT
    * todo - add support for DELETE
-   */
+   *!/
 
   async post(): Promise<Buffer> {
 
@@ -1377,4 +1382,4 @@ export class RoutingHttp2IncomingMessage
 
     return this.#url_search_params_internal;
   }
-}
+}*/

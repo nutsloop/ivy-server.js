@@ -1,6 +1,6 @@
 {
-  "name": "@ivy-industries/server",
-  "version": "1.0.0-alpha.19",
+  "name": "@nutsloop/ivy-server",
+  "version": "1.0.0-alpha.20",
   "license": "Apache-2.0",
   "description": "Facilitating & Enhancing Network Strength.",
   "type": "module",
@@ -65,17 +65,17 @@
   "funding": [
     {
       "type": "github",
-      "url": "https://github.com/sponsors/ivy-industries"
+      "url": "https://github.com/sponsors/nutsloop"
     }
   ],
   "author": {
-    "name": "ivy-industries",
-    "email": "grow@ivy.run",
-    "url": "https://github.com/ivy-industries"
+    "name": "nutsloop",
+    "email": "nutsloop@proton.me",
+    "url": "https://github.com/nutsloop"
   },
-  "homepage": "https://github.com/ivy-industries/server#readme",
+  "homepage": "https://github.com/nutsloop/ivy-server.js#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ivy-industries/server.git"
+    "url": "git+https://github.com/nutsloop/ivy-server.js.git"
   }
 }

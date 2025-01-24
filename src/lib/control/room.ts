@@ -48,8 +48,15 @@ export async function control_room( control_room_config_file_path: string ): Pro
     }
   } );
 
-  // ping the worker every second.
-  // the worker (./thread/worker.js) will the send to the socket client the heap usage.
+  /**
+   * Pings the worker every second.
+   * If the client is connected, the worker `./thread/worker.js` will send the heap usage.
+   * This is sent to all the workers:
+   * - server cluster workers
+   * - control room worker
+   * - socket worker
+   * - log worker
+   */
   setInterval( () => {
     const control_room_workers = [];
     for( const worker of Object.values( cluster.workers ) ){
@@ -57,10 +64,11 @@ export async function control_room( control_room_config_file_path: string ): Pro
         control_room_workers.push( worker );
       }
     }
-    // sendig the heap usage of the worker
+
+    // request the heap usage of the worker.
     control_room_workers[ 0 ].send( { 'control-room': 'heap-usage-self' } );
 
-    // sending also the ram usage of the main server
+    // send the heap usage of the server-main.
     control_room_workers[ 0 ].send( { 'control-room':{
       heap_usage: {
         heap: {
