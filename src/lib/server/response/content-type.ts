@@ -19,6 +19,8 @@ export type ContentTypeFileExt = '.cjs' |
   '.webm' |
   '.webmanifest' |
   '.webp' |
+  '.woff' |
+  '.woff2' |
   '.xml';
 
 type ContentType = Map< ContentTypeFileExt, string>;
@@ -44,5 +46,7 @@ export const CONTENT_TYPE: ContentType = new Map( [
   [ '.webm', 'video/webm' ],
   [ '.webmanifest', 'application/manifest+json' ],
   [ '.webp', 'image/webp' ],
+  [ '.woff', 'font/woff' ],
+  [ '.woff2', 'font/woff2' ],
   [ '.xml', 'text/xml' ],
 ] );
