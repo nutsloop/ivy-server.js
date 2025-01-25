@@ -1,4 +1,4 @@
-import type { CallBackFlagAsync } from '@ivy-industries/input';
+import type { CallBackFlagAsync } from '@nutsloop/ivy-input';
 
 import { cpus } from 'node:os';
 

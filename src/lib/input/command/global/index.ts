@@ -1,4 +1,4 @@
-import { global } from '@ivy-industries/input';
+import { global } from '@nutsloop/ivy-input';
 
 import { ease_cb } from './flag/ease/cb.js';
 import { ease_cluster_cb } from './flag/ease-cluster/cb.js';

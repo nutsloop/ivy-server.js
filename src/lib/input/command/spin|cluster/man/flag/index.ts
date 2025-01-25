@@ -23,7 +23,7 @@ export const spin_cluster_log_color_description = `Color the log, it depend on t
 export const spin_cluster_log_color_usage = 'ivy-server spin|cluster --log-color --log';
 
 export const spin_cluster_log_persistent_description = `Log requests on file/db anything, useful for debugging
-   it requries the flag --log to be set
+   it requires the flag --log to be set
    it requires a logConfig.js file in the root of your project.
    the given number to the flag it will cluster many threads to handle the requests.
 `;

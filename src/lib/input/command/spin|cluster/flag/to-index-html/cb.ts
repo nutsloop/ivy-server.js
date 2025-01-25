@@ -1,5 +1,5 @@
 import { Path } from '@ivy-industries/cross-path';
-import { CallBackFlagAsync } from '@ivy-industries/input';
+import { CallBackFlagAsync } from '@nutsloop/ivy-input';
 
 import { routing } from '../../../../../server/routing.js';
 

@@ -1,5 +1,5 @@
 import { Path } from '@ivy-industries/cross-path';
-import { CallBackArgvData, CallBackAsync } from '@ivy-industries/input';
+import { CallBackArgvData, CallBackAsync } from '@nutsloop/ivy-input';
 import cluster from 'node:cluster';
 import { cpus } from 'node:os';
 

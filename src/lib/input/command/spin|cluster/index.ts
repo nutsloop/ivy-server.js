@@ -1,4 +1,4 @@
-import { command, flag } from '@ivy-industries/input';
+import { command, flag } from '@nutsloop/ivy-input';
 
 import { command_call } from '../../../logic.js';
 import { spin_cluster_cb } from './cb.js';
@@ -11,10 +11,10 @@ import { hot_routes_cb } from './flag/hot-routes/cb.js';
 //import { http2_cb } from './flag/http2/cb.js';
 import { https_cb } from './flag/https/cb.js';
 import { live_reload_cb } from './flag/live-reload/cb.js';
-import { log_cb } from './flag/log/cb.js';
 import { log_all_cb } from './flag/log-all/cb.js';
 import { log_color_cb } from './flag/log-color/cb.js';
 import { log_persistent_cb } from './flag/log-persistent/cb.js';
+import { log_cb } from './flag/log/cb.js';
 import { port_cb } from './flag/port/cb.js';
 import { routes_cb } from './flag/routes/cb.js';
 import { served_by_cb } from './flag/served-by/cb.js';
@@ -171,7 +171,7 @@ export async function spin_cluster(){
       fn: log_color_cb,
       type: 'sync'
     },
-    depends_on: [ '--log' ],
+    depends_on: [ '--log|--log-all' ],
     description: spin_cluster_log_color_description,
     is_flag_of: [ 'spin', 'cluster' ],
     usage: spin_cluster_log_color_usage,

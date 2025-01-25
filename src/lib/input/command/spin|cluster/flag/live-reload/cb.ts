@@ -1,4 +1,4 @@
-import type { CallBackFlagArgvData, CallBackFlagAsync } from '@ivy-industries/input';
+import type { CallBackFlagArgvData, CallBackFlagAsync } from '@nutsloop/ivy-input';
 
 import { isValid } from '@ivy-industries/cross-path';
 import { watcher } from '@ivy-industries/watcher';

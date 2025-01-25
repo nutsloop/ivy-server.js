@@ -1,4 +1,4 @@
-import { set_cli_info_specification } from '@ivy-industries/input';
+import { set_cli_info_specification } from '@nutsloop/ivy-input';
 
 import { globals } from './command/global/index.js';
 import { spin_cluster } from './command/spin|cluster/index.js';
@@ -15,7 +15,7 @@ export async function definition(): Promise<void> {
     name: 'ivy-server',
     npmjs: 'https://www.npmjs.com/~nutsloop',
     usage: 'ivy-server [--global-flag=[options]] <command> [--flag=[options]]',
-    version: '1.0.0-alpha.21',
+    version: '1.0.0-alpha.22',
     website: 'https://github.com/sponsors/nutsloop'
   } );
 

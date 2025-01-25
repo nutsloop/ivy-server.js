@@ -1,4 +1,4 @@
-import type { CallBackGlobalFlag } from '@ivy-industries/input';
+import type { CallBackGlobalFlag } from '@nutsloop/ivy-input';
 
 import { routing } from '../../../../../server/routing.js';
 

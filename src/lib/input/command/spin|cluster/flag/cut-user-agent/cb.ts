@@ -1,4 +1,4 @@
-import { CallBackFlag } from '@ivy-industries/input';
+import { CallBackFlag } from '@nutsloop/ivy-input';
 
 import { routing } from '../../../../../server/routing.js';
 

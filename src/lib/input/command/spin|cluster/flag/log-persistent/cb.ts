@@ -1,4 +1,4 @@
-import { CallBackFlagAsync } from '@ivy-industries/input';
+import { CallBackFlagAsync } from '@nutsloop/ivy-input';
 import { cpus } from 'node:os';
 
 import { routing } from '../../../../../server/routing.js';
