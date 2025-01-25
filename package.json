@@ -1,6 +1,6 @@
 {
   "name": "@nutsloop/ivy-server",
-  "version": "1.0.0-alpha.22",
+  "version": "1.0.0-alpha.23",
   "license": "Apache-2.0",
   "description": "Facilitating & Enhancing Network Strength.",
   "type": "module",
@@ -39,7 +39,7 @@
     "@ivy-industries/async-import-meta-resolve": "^1.0.0-alpha.1",
     "@ivy-industries/cross-path": "^1.0.0-alpha.1",
     "@ivy-industries/watcher": "^1.0.0-alpha.1",
-    "@nutsloop/ivy-input": "^1.0.1-alpha.0",
+    "@nutsloop/ivy-input": "^1.0.1-alpha.1",
     "encoding-japanese": "^2.2.0",
     "ws": "^8.18.0"
   },
