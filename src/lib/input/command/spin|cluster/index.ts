@@ -16,6 +16,8 @@ import { log_color_cb } from './flag/log-color/cb.js';
 import { log_persistent_cb } from './flag/log-persistent/cb.js';
 import { log_cb } from './flag/log/cb.js';
 import { port_cb } from './flag/port/cb.js';
+import { redirect_to_https_cb } from './flag/redirect-to-https/cb.js';
+import { redirect_to_cb } from './flag/redirect-to/cb.js';
 import { routes_cb } from './flag/routes/cb.js';
 import { served_by_cb } from './flag/served-by/cb.js';
 import { socket_cb } from './flag/socket/cb.js';
@@ -189,6 +191,32 @@ export async function spin_cluster(){
     is_flag_of: [ 'spin', 'cluster' ],
     usage: spin_cluster_log_all_usage,
     void: true
+  } );
+
+  await flag( '--redirect-to', {
+    alias: 'redirect-to',
+    cb:{
+      fn: redirect_to_cb,
+      type: 'sync'
+    },
+    description: 'Redirect to a different URL (301 Moved Permanently)',
+    is_flag_of: [ 'spin', 'cluster' ],
+    type: 'string',
+    usage: 'ivy-server spin|cluster --redirect-to=https://www.domain.com',
+  } );
+
+  await flag( '--redirect-to-https', {
+    alias: 'redirect-to-https',
+    cb:{
+      fn: redirect_to_https_cb,
+      type: 'sync'
+    },
+    description: 'Redirect to https, requires --redirect-to',
+    depends_on: [ '--redirect-to' ],
+    has_conflict: [ '--https' ],
+    is_flag_of: [ 'spin', 'cluster' ],
+    void: true,
+    usage: 'ivy-server spin|cluster --redirect-to=https://www.domain.com --redirect-to-https',
   } );
 
   await flag( '--log-persistent', {
