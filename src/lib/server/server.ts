@@ -11,7 +11,7 @@ extends_proto();
  * Abstraction layer Type of the cli commands|options server.
  */
 export type CreateServerOptions =
-  Map<'address' | 'exec' | 'served-by' | 'www-root', string> &
+  Map<'address' | 'exec' | 'redirect' | 'served-by' | 'www-root', string> &
   Map<'command', 'cluster' | 'spin'> &
   Map<'control-room' |
     'cut-user-agent' |
@@ -21,6 +21,7 @@ export type CreateServerOptions =
     'log' |
     'log-all' |
     'log-color' |
+    'redirect-to-https' |
     'to-index-html', null> &
   Map<'cpus' | 'port', number> &
   Map<'http2' | 'https' | 'live-reload' | 'vroutes', null | string> &
