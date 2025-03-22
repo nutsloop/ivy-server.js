@@ -31,6 +31,7 @@ type RoutingRoute = Map<string, ImportedRoute | Route>;
 type Routing =
   Map<'address' |
     'exec' |
+    'redirect' |
     'routes-path' |
     'served-by-name' |
     'www-root', string> &
@@ -45,6 +46,7 @@ type Routing =
     'log-all' |
     'log-color' |
     'log-persistent' |
+    'redirect-to-https' |
     'routes-active' |
     'secure' |
     'served-by' |
@@ -94,6 +96,8 @@ routing.set( 'ease-cluster', false );
 routing.set( 'socket', false );
 routing.set( 'virtual-routes', [] );
 routing.set( 'cluster', false );
+routing.set( 'redirect', '' );
+routing.set( 'redirect-to-https', false );
 routing.set( 'routes', new Map() );
 routing.set( 'secure', false );
 routing.set( 'cut-user-agent', false );
@@ -144,6 +148,8 @@ export class RoutingServerResponse<K extends IncomingMessage>
   #wrk: 0 | number = 0;
   incoming: ServerResponseIncoming = new Map();
   listener_error = false;
+  redirect: boolean = false;
+  redirect_to: string = '';
   log: boolean = routing.get( 'log' );
   routes_active: boolean = routing.get( 'routes-active' );
   routes_path: string = routing.get( 'routes-path' );
@@ -184,11 +190,11 @@ export class RoutingServerResponse<K extends IncomingMessage>
   #log_color( message: string, color: string, decoration: boolean|string = false ): string{
 
     if( ! routing.get( 'log-color' ) ){
-      return message;
+      return typeof message !== 'string' ? '!string' : message;
     }
 
     if( typeof message !== 'string' ){
-      return 'err: field is not a string'.red();
+      return '!string'.red();
     }
 
     if( typeof decoration === 'string' ){
@@ -363,28 +369,28 @@ export class RoutingServerResponse<K extends IncomingMessage>
 
     super.end( data, encoding, callback );
 
-    if( this.listener_error === false ){
-      routing.get( 'response-time' ).set( 'end', performance.now() );
+    if( this.redirect === true ){}
+    if( this.listener_error === false ){}
 
-      if ( this.log ) {
+    routing.get( 'response-time' ).set( 'end', performance.now() );
 
-        this.#counter.push( 1 );
+    if ( this.log ) {
 
-        const file_extension = this.#log_all_extname();
+      this.#counter.push( 1 );
 
-        this.bytesWritten = this.bytesWritten > 0 ? this.bytesWritten : this.socket.bytesWritten;
+      const file_extension = this.#log_all_extname();
 
-        if ( routing.get( 'log-all' ) ) {
+      this.bytesWritten = this.bytesWritten > 0 ? this.bytesWritten : this.socket.bytesWritten;
 
-          this.#log_data();
-        }
-        else if ( file_extension === '.html' || file_extension.length === 0 ) {
+      if ( routing.get( 'log-all' ) ) {
 
-          this.#log_data();
-        }
+        this.#log_data();
+      }
+      else if ( file_extension === '.html' || file_extension.length === 0 ) {
+
+        this.#log_data();
       }
     }
-    // send request for the ip address to nmap. it is a standalone server maybe written in c++.
 
     return this;
   }
@@ -505,12 +511,13 @@ export class RoutingServerResponse<K extends IncomingMessage>
 
       return JSON.parse( json );
     }
-    catch( _e ){
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    catch( error ){
 
       const encoded = Encoding.detect( json );
       const encoding = encoded === false ? 'not detected' : ` (${ encoded })`.magenta();
-      const error = `${'incoming not JSON data: '}${this.incoming.get( 'id' ).b_white().bg_black()} ${this.incoming.get( 'ip_address' ).b_red()} ${encoding}`;
-      this.incoming.set( 'data-error', error );
+      const error_message = `${'incoming not JSON data: '}${this.incoming.get( 'id' ).b_white().bg_black()} ${this.incoming.get( 'ip_address' ).b_red()} ${encoding}`;
+      this.incoming.set( 'data-error', error_message );
       if ( return_plain ){
         return json;
       }
@@ -620,6 +627,7 @@ export class RoutingIncomingMessage
         ? undefined
         : urlSearchParams;
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     catch ( error ) {
 
       return undefined;
