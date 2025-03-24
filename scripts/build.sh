@@ -24,6 +24,11 @@ if [ -f "./example/socketClient.js" ]; then
     mv "./example/socketClient.js" "./socketClient.js"
 fi
 
+# Check if multiDomainConfig.js exists
+if [ -f "./example/multiDomainConfig.js" ]; then
+    mv "./example/multiDomainConfig.js" "./multiDomainConfig.js"
+fi
+
 # Check if directory public exists, if not, create it
 [ -d "./public" ] || mkdir "./public"
 
