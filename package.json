@@ -1,6 +1,6 @@
 {
   "name": "@nutsloop/ivy-server",
-  "version": "1.0.0-alpha.34",
+  "version": "1.0.0-alpha.35",
   "license": "Apache-2.0",
   "description": "Facilitating & Enhancing Network Strength.",
   "type": "module",
@@ -28,7 +28,7 @@
     "build": "./scripts/build.sh",
     "clean": "./scripts/clean.sh",
     "chmod.u+x-fix": "./scripts/chmod.u+x.sh",
-    "lint": "npx eslint . --ext .ts",
+    "lint": "npx eslint",
     "lint-fix": "npx eslint . --fix --ext .ts",
     "tsc-watch": "npx tsc-watch --onSuccess \"sh ./scripts/chmod.u+x.sh\"",
     "update": "npx npm-check-updates -u",
