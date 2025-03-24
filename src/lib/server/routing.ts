@@ -11,6 +11,7 @@ import { IncomingMessage, ServerResponse } from 'node:http';
 import { performance } from 'node:perf_hooks';
 import { inspect } from 'node:util';
 
+import type { DomainConfig } from './dispacher.js';
 import type { ContentTypeFileExt } from './response/content-type.js';
 
 import { CONTENT_TYPE } from './response/content-type.js';
@@ -28,7 +29,7 @@ type RoutingRoute = Map<string, ImportedRoute | Route>;
 /**
  * todo - refactor if necessary
  */
-type Routing =
+export type Routing =
   Map<'address' |
     'exec' |
     'redirect' |
@@ -56,6 +57,7 @@ type Routing =
   Map<'cpus' | 'port', number> &
   Map<'response-time', Map<'end', number>> &
   Map<'routes', RoutingRoute> &
+  Map<'multi-domain', DomainConfig> &
   Map<'virtual-routes', string[]>;
 
 type ServerTypesResponse =
@@ -95,6 +97,7 @@ routing.set( 'ease', false );
 routing.set( 'ease-cluster', false );
 routing.set( 'socket', false );
 routing.set( 'virtual-routes', [] );
+routing.set( 'multi-domain', new Map() );
 routing.set( 'cluster', false );
 routing.set( 'redirect', '' );
 routing.set( 'redirect-to-https', false );
@@ -150,6 +153,7 @@ export class RoutingServerResponse<K extends IncomingMessage>
   listener_error = false;
   redirect: boolean = false;
   redirect_to: string = '';
+  multi_domain: boolean = false;
   log: boolean = routing.get( 'log' );
   routes_active: boolean = routing.get( 'routes-active' );
   routes_path: string = routing.get( 'routes-path' );
