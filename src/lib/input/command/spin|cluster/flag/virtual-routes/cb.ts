@@ -23,7 +23,7 @@ export const virtual_routes_cb: CallBackFlagAsync = async ( data: string ): Prom
   let virtual_routes: string | string[] = await readFile( virtual_routes_file, { encoding: 'utf-8' } );
   if( virtual_routes.length === 0 ) {
 
-    let message = `descrciptor file must be filled with at least one virtual route.\n`;
+    let message = `descriptor file must be filled with at least one virtual route.\n`;
     message += `one route per line.\n`;
     message += `example:\n`;
     message += `  /home\n`;
