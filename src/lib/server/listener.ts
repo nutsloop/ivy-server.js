@@ -29,35 +29,63 @@ export async function listener<K extends IncomingMessage>( IncomingMessage: Rout
     process.stderr.write( `${date} ${message}\n` );
 
     ServerResponse.statusCode = 400;
-    //ServerResponse.end();
   }
 
   // double slash in the URL is not allowed
   if( IncomingMessage.url.startsWith( '//' ) ){
 
+    ServerResponse.listener_error = true;
     const message = 'Invalid URL with double slash';
     const date = new Date().toISOString();
     process.stderr.write( `${date} ${message}\n` );
 
-    ServerResponse.listener_error = true;
     ServerResponse.statusCode = 400;
-    // ServerResponse.end();
   }
 
-  if( routing.get( 'redirect' ).length > 0 && ! ServerResponse.listener_error ){
+  const request_host = IncomingMessage.headers.host || IncomingMessage.headers[ ':authority' ];
+  const secure = routing.get( 'secure' );
+  const url = IncomingMessage.url || '/';
+  const multi_domain = routing.get( 'multi-domain' );
+
+  /*
+  * request -> host -> multi-domain
+  *   ->
+  */
+  if( multi_domain.size > 0 ){
+    if ( multi_domain.has(<string> request_host ) ){
+      ServerResponse.multi_domain = true;
+      const domain = multi_domain.get( <string> request_host );
+
+      ServerResponse.www_root = routing.get( 'www-root' ) + '/' + domain.www_root;
+
+      if(domain.redirect_to_https && ! secure ){
+        process.stdout.write( `redirect -> '${request_host}' => has been sent.\n` );
+        ServerResponse.redirect = true;
+        ServerResponse.redirect_to = `https://${request_host}${url}`;
+      }
+      if ( ServerResponse.redirect ){
+        ServerResponse.statusCode = 301;
+        ServerResponse.setHeader( 'location', ServerResponse.redirect_to );
+        ServerResponse.setHeader( 'cache-control', 'no-cache, no-store, must-revalidate' );
+        ServerResponse.setHeader( 'pragma', 'no-cache' );
+        ServerResponse.setHeader( 'expires', '0' );
+        ServerResponse.setHeader( 'content-type', 'text/plain; charset=utf-8' );
+        ServerResponse.setHeader( 'content-length', '0' );
+        ServerResponse.setHeader( 'connection', 'close' );
+      }
+    }
+  }
+
+  if( routing.get( 'redirect' ).length > 0 && ! ServerResponse.listener_error && ! ServerResponse.multi_domain ){
 
     const canonical = routing.get( 'redirect' );
     const redirect_to_https = routing.get( 'redirect-to-https' );
-    const secure = routing.get( 'secure' );
-    const request_host = IncomingMessage.headers.host || IncomingMessage.headers[ ':authority' ];
     const is_canonical = request_host === canonical;
-    const url = IncomingMessage.url || '/';
 
     if( is_canonical && redirect_to_https && ! secure ){
       process.stdout.write( `redirect -> '${request_host}' => has been sent.\n` );
       ServerResponse.redirect = true;
       ServerResponse.redirect_to = `https://${canonical}${url}`;
-
     }
 
     if( ! is_canonical && redirect_to_https && ! secure ){
@@ -85,7 +113,6 @@ export async function listener<K extends IncomingMessage>( IncomingMessage: Rout
       ServerResponse.setHeader( 'content-type', 'text/plain; charset=utf-8' );
       ServerResponse.setHeader( 'content-length', '0' );
       ServerResponse.setHeader( 'connection', 'close' );
-      //ServerResponse.end();
     }
   }
 
