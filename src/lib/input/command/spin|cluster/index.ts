@@ -15,6 +15,7 @@ import { log_all_cb } from './flag/log-all/cb.js';
 import { log_color_cb } from './flag/log-color/cb.js';
 import { log_persistent_cb } from './flag/log-persistent/cb.js';
 import { log_cb } from './flag/log/cb.js';
+import { multi_domain_cb } from './flag/multi-domain/cb.js';
 import { port_cb } from './flag/port/cb.js';
 import { redirect_to_https_cb } from './flag/redirect-to-https/cb.js';
 import { redirect_to_cb } from './flag/redirect-to/cb.js';
@@ -129,7 +130,7 @@ export async function spin_cluster(){
     usage: spin_cluster_https_usage
   } );
 
-/*  await flag( '--http2', {
+  /*  await flag( '--http2', {
     alias: 'http2',
     cb: {
       fn: http2_cb,
@@ -331,6 +332,19 @@ export async function spin_cluster(){
     multi_type: [ 'void', 'kvp' ],
     precedence: 2,
     usage: spin_cluster_live_reload_usage,
+  } );
+
+  await flag( '--multi-domain', {
+    alias: 'multi-domain',
+    cb: {
+      fn: multi_domain_cb,
+      type: 'async'
+    },
+    precedence: 10,
+    description: `serve multiple domains from a single server instance`,
+    is_flag_of: [ 'spin', 'cluster' ],
+    multi_type: [ 'void', 'string' ],
+    usage: `ivy-server spin|cluster --multi-domain=path/to/domain/multiDomainConfig.js`
   } );
 
   // cluster only flags
