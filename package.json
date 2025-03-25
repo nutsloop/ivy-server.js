@@ -1,6 +1,6 @@
 {
   "name": "@nutsloop/ivy-server",
-  "version": "1.0.0-alpha.35",
+  "version": "1.0.0-alpha.36",
   "license": "Apache-2.0",
   "description": "Facilitating & Enhancing Network Strength.",
   "type": "module",
@@ -38,24 +38,24 @@
     "@ivy-industries/ansi": "^1.0.0-alpha.1",
     "@ivy-industries/async-import-meta-resolve": "^1.0.0-alpha.1",
     "@ivy-industries/cross-path": "^1.0.0-alpha.1",
-    "@ivy-industries/watcher": "^1.0.0-alpha.1",
+    "@nutsloop/ivy-watcher": "^1.0.1-alpha.1",
     "@nutsloop/ivy-input": "^1.0.1-alpha.1",
     "encoding-japanese": "^2.2.0",
-    "ws": "^8.18.0"
+    "ws": "^8.18.1"
   },
   "devDependencies": {
-    "@eslint/js": "^9.19.0",
+    "@eslint/js": "^9.23.0",
     "@types/encoding-japanese": "^2.2.1",
-    "@types/node": "^22.10.10",
-    "@types/ws": "^8.5.14",
-    "@typescript-eslint/eslint-plugin": "^8.21.0",
-    "@typescript-eslint/parser": "^8.21.0",
-    "eslint": "^9.19.0",
-    "eslint-plugin-perfectionist": "^4.7.0",
+    "@types/node": "^22.13.13",
+    "@types/ws": "^8.18.0",
+    "@typescript-eslint/eslint-plugin": "^8.28.0",
+    "@typescript-eslint/parser": "^8.28.0",
+    "eslint": "^9.23.0",
+    "eslint-plugin-perfectionist": "^4.10.1",
     "nodemon": "^3.1.9",
-    "npm-check-updates": "^17.1.14",
+    "npm-check-updates": "^17.1.16",
     "tsc-watch": "^6.2.1",
-    "typescript": "^5.7.3"
+    "typescript": "^5.8.2"
   },
   "keywords": [
     "node.js server",
