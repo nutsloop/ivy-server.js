@@ -1,5 +1,4 @@
 //import type { IncomingHttpHeaders, ServerHttp2Stream } from 'node:http2';
-import type { Socket } from 'node:net';
 //import type { ReadableOptions } from 'node:stream';
 
 import { Path } from '@ivy-industries/cross-path';
@@ -160,8 +159,8 @@ export class RoutingServerResponse<K extends IncomingMessage>
   secure: boolean = routing.get( 'secure' );
   www_root: string = routing.get( 'www-root' );
 
-  constructor( k: K ) {
-    super( k );
+  constructor( ...args: ConstructorParameters<typeof ServerResponse> ) {
+    super( ...args as ConstructorParameters<typeof ServerResponse<K>> );
   }
 
   #cut_user_agent( incoming_user_agent: string ): string {
@@ -611,9 +610,8 @@ export class RoutingIncomingMessage
   route_module: Route;
   routes: RoutingRoute = routing.get( 'routes' );
 
-  constructor( socket: Socket ) {
-
-    super( socket );
+  constructor( ...args: ConstructorParameters<typeof IncomingMessage> ) {
+    super( ...args );
   }
 
   /**
