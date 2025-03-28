@@ -42,7 +42,7 @@ export async function listener<K extends IncomingMessage>( IncomingMessage: Rout
     ServerResponse.statusCode = 400;
   }
 
-  const request_host: string = IncomingMessage.headers.host || IncomingMessage.headers[ ':authority' ] as string;
+  const request_host: string = IncomingMessage.headers.host || IncomingMessage.headers[ ':authority' ] as string || 'UNKNOWN HOST';
   const secure = routing.get( 'secure' );
   const url = IncomingMessage.url || '/';
   const multi_domain = routing.get( 'multi-domain' );
@@ -106,20 +106,21 @@ export async function listener<K extends IncomingMessage>( IncomingMessage: Rout
   data.set( 'url_params', IncomingMessage.url_search_params );
   data.set( 'data', await IncomingMessage.post() );
 
-  if( ServerResponse.log ){
-    ServerResponse.bytesRead = IncomingMessage.socket.bytesRead;
-    ServerResponse.incoming.set( 'data-error', '' );
-    ServerResponse.incoming.set( 'id', await generate_id() );
-    ServerResponse.incoming.set( 'ip_address', IncomingMessage.ip_address );
-    ServerResponse.incoming.set( 'method', IncomingMessage.method );
-    ServerResponse.incoming.set( 'url', IncomingMessage.url || 'unknown' );
-    ServerResponse.incoming.set( 'httpVersion', `http/${IncomingMessage.httpVersion}` );
-    ServerResponse.incoming.set( 'host', IncomingMessage.headers.host || <string>IncomingMessage.headers[ ':authority' ] );
-    ServerResponse.incoming.set( 'user-agent', ServerResponse.user_agent( IncomingMessage.headers[ 'user-agent' ] ) );
-    ServerResponse.incoming.set( 'referer', IncomingMessage.headers.referer || 'no-referer' );
-    ServerResponse.incoming.set( 'date', new Date().toISOString() );
-    ServerResponse.incoming.set( 'request', data );
-  }
+  // checking the logging issue removing the if statement
+  //if( ServerResponse.log ){
+  ServerResponse.bytesRead = IncomingMessage.socket.bytesRead;
+  ServerResponse.incoming.set( 'data-error', '' );
+  ServerResponse.incoming.set( 'id', await generate_id() );
+  ServerResponse.incoming.set( 'ip_address', IncomingMessage.ip_address );
+  ServerResponse.incoming.set( 'method', IncomingMessage.method );
+  ServerResponse.incoming.set( 'url', IncomingMessage.url || 'unknown' );
+  ServerResponse.incoming.set( 'httpVersion', `http/${IncomingMessage.httpVersion}` );
+  ServerResponse.incoming.set( 'host', IncomingMessage.headers.host || <string>IncomingMessage.headers[ ':authority' ] || 'UNKNOWN HOST' );
+  ServerResponse.incoming.set( 'user-agent', ServerResponse.user_agent( IncomingMessage.headers[ 'user-agent' ] ) );
+  ServerResponse.incoming.set( 'referer', IncomingMessage.headers.referer || 'no-referer' );
+  ServerResponse.incoming.set( 'date', new Date().toISOString() );
+  ServerResponse.incoming.set( 'request', data );
+  //}
 
   if( ServerResponse.listener_error ){
     ServerResponse.end();

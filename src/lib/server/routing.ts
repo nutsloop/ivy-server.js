@@ -197,7 +197,7 @@ export class RoutingServerResponse<K extends IncomingMessage>
       if( typeof message !== 'string' ){
         process.stderr.write( 'Error: log-color is false but the message is not a string.\n' );
         process.stderr.write( `Message: ${ inspect( message, { colors: false, depth: Infinity } ) }\n` );
-        process.stderr.write( `RoutingServerResponse: ${ inspect( this, { colors: routing.get( 'log-color' ), depth: Infinity } ) }\n` );
+        //process.stderr.write( `RoutingServerResponse: ${ inspect( this, { colors: routing.get( 'log-color' ), depth: Infinity } ) }\n` );
       }
 
       return typeof message !== 'string' ? '!string' : message;
@@ -208,7 +208,7 @@ export class RoutingServerResponse<K extends IncomingMessage>
       if( typeof message !== 'string' ){
         process.stderr.write( 'Error: log-color is false but the message is not a string.\n' );
         process.stderr.write( `Message: ${ inspect( message, { colors: true, depth: Infinity } ) }\n` );
-        process.stderr.write( `RoutingServerResponse: ${ inspect( this, { colors: routing.get( 'log-color' ), depth: Infinity } ) }\n` );
+        //process.stderr.write( `RoutingServerResponse: ${ inspect( this, { colors: routing.get( 'log-color' ), depth: Infinity } ) }\n` );
       }
 
       return '!string'.red();
@@ -223,14 +223,16 @@ export class RoutingServerResponse<K extends IncomingMessage>
 
   #log_data(): void {
 
-    let method_section = this.#log_color( this.incoming.get( 'method' ), 'red' );
-    method_section += `(${ this.#log_color( this.bytesRead.toFixed(), 'green', 'strong' ) })`;
-    method_section += `(${ this.#log_color( this.bytesWritten.toFixed(), 'red', 'strong' ) })`;
+    // checking the logging issue
+    /*not set*/let method_section = this.#log_color( this.incoming.get( 'method' ), 'red' );
+    /*set*/method_section += `(${ this.#log_color( this.bytesRead.toFixed(), 'green', 'strong' ) })`;
+    /*set*/method_section += `(${ this.#log_color( this.bytesWritten.toFixed(), 'red', 'strong' ) })`;
 
     /**
      * log format:
      * - unique id
      * - incoming method
+     * - i/o data size
      * - requested url
      * - status code
      * - ip address incoming
@@ -238,6 +240,7 @@ export class RoutingServerResponse<K extends IncomingMessage>
      * - http version [http/1.1 | http/2(not supported yet)]
      * - secure [⚷ yellow | ⚷ red] -> [https | http]
      * - requests count per worker in cluster mode or total requests count in non-cluster mode
+     * - like promise issue...⟳
      * - wrk (id)[pid] if in cluster mode | (0)[pid] if not in cluster mode
      * - user-agent
      * - referer
@@ -245,26 +248,28 @@ export class RoutingServerResponse<K extends IncomingMessage>
      * - date
      * - POST|PUT|PATCH|DELETE|GET data if any
      */
+    // !string !string(0)(117)  /unknown 400 !string      !string     !string  ⚷ 859 ⟳ (0)[4029551] !string                  0.1781ms !string
+    // 3754cd19 GET   (67)(276) /        301 91.4.175.223 89.168.29.7 http/1.0 ⚷ 389 ⟳ (1)[4029550] Agent/Unknown no-referer 0.5329ms 2025-03-28T04:38:35.991Z
     const message: string[] = [
-      this.#log_color( this.incoming.get( 'id' ), 'b_white', 'bg_black' ),
-      method_section,
-      this.incoming.get( 'url' ),
-      this.#log_color( this.statusCode.toString(), 'magenta' ),
-      this.#log_color( this.incoming.get( 'ip_address' ), 'blue' ),
-      this.#log_color( this.incoming.get( 'host' ), 'blue', 'strong' ),
-      this.#log_color( this.incoming.get( 'httpVersion' ), 'red', 'underline' ),
-      this.secure
+      /*not set*/this.#log_color( this.incoming.get( 'id' ), 'b_white', 'bg_black' ),
+      /*partially set*/method_section,
+      /*set*/this.incoming.get( 'url' ),
+      /*set*/this.#log_color( this.statusCode.toString(), 'magenta' ),
+      /*not set*/this.#log_color( this.incoming.get( 'ip_address' ), 'blue' ),
+      /*not set*/this.#log_color( this.incoming.get( 'host' ), 'blue', 'strong' ),
+      /*not set*/this.#log_color( this.incoming.get( 'httpVersion' ), 'red', 'underline' ),
+      /*set*/this.secure
         ? this.#log_color( '⚷', 'yellow', 'strong' )
         : this.#log_color( '⚷', 'red', 'strong' ),
-      this.#log_color( this.#counter.length.toString(), 'cyan', 'strong' ),
-      this.wrk === 0
+      /*set*/this.#log_color( this.#counter.length.toString(), 'cyan', 'strong' ),
+      /*set*/this.wrk === 0
         ? this.#log_color( `⟳ (0)[${ process.pid }]`, 'yellow' )
         : this.#log_color( `⟳ (${ this.wrk })[${ process.pid }]`, 'b_yellow' ),
-      this.#log_color( this.incoming.get( 'user-agent' ), 'green' ),
-      this.incoming.get( 'referer' ),
-      `${ this.get_response_time().toFixed( 4 ) }ms`,
-      this.#log_color( this.incoming.get( 'date' ), 'yellow' ),
-      this.#log_data_request() === false
+      /*set*/this.#log_color( this.incoming.get( 'user-agent' ), 'green' ),
+      /*not set but empty?*/this.incoming.get( 'referer' ),
+      /*set*/`${ this.get_response_time().toFixed( 4 ) }ms`,
+      /*not set*/this.#log_color( this.incoming.get( 'date' ), 'yellow' ),
+      /*set*/this.#log_data_request() === false
         ? ''
         : <string>this.#log_data_request()
     ];
