@@ -60,7 +60,7 @@ export type Routing =
   Map<'virtual-routes', string[]>;
 
 type ServerTypesResponse =
-  /*RoutingHttp2ServerResponse<ServerHttp2Stream> | */RoutingServerResponse<IncomingMessage>
+  /*RoutingHttp2ServerResponse<ServerHttp2Stream> | */RoutingServerResponse<RoutingIncomingMessage>
 type ServerTypeIncoming =
   /*RoutingHttp2IncomingMessage | */RoutingIncomingMessage
 /**
@@ -138,7 +138,7 @@ type ServerResponseIncoming =
  * @template K - type parameter representing the type of incoming messages.
  * @extends ServerResponse - extends the ServerResponse class.
  */
-export class RoutingServerResponse<K extends IncomingMessage>
+export class RoutingServerResponse<K extends RoutingIncomingMessage>
   extends ServerResponse<K> {
 
   #bytesRead: number = 0;
@@ -769,7 +769,7 @@ export class RoutingIncomingMessage
     this.ip_address = this.headers[ 'x-forwarded-for' ] || this.socket.remoteAddress;
   }
 
-  to_object( json: string, res: RoutingServerResponse< IncomingMessage > ): {}{
+  to_object( json: string, res: RoutingServerResponse< RoutingIncomingMessage > ): {}{
 
     try{
 

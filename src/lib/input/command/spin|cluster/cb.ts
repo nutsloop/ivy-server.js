@@ -113,6 +113,7 @@ export const spin_cluster_cb: CallBackAsync = async ( data: SpinClusterData, spi
   }
 };
 
+// TODO: server call
 async function server( data: SpinClusterData ): Promise<void> {
 
   const address: string = data.get( 'address' ) || '0.0.0.0';

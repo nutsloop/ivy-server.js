@@ -9,7 +9,10 @@ import { RoutingIncomingMessage, RoutingServerResponse } from '../routing.js';
 import { catcher } from './exception/catcher.js';
 import { destructuring_certs_path } from './shared/destructuring_certs_path.js';
 
-export async function https( port:number, address:string, certs_path: Map<'cert'|'dhparam'|'key', string> ): Promise<Server> {
+export async function https( port:number, address:string, certs_path: Map<'cert'|'dhparam'|'key', string> ): Promise<Server<
+  typeof RoutingIncomingMessage,
+  typeof RoutingServerResponse
+>> {
 
   const [ key_path, cert_path, dhparam_path ] = destructuring_certs_path( certs_path );
 
@@ -22,7 +25,10 @@ export async function https( port:number, address:string, certs_path: Map<'cert'
 
   if( ! ( key instanceof Error ) && ! ( cert instanceof Error ) && ! ( dhparam instanceof Error ) ){
 
-    const https_server: Server = createServer(
+    const https_server = createServer<
+      typeof RoutingIncomingMessage,
+      typeof RoutingServerResponse
+    >(
       {
         IncomingMessage: RoutingIncomingMessage,
         ServerResponse: RoutingServerResponse,

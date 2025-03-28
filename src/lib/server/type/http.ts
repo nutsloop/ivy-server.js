@@ -6,9 +6,15 @@ import { listen } from '../listen/listen.js';
 import { listener } from '../listener.js';
 import { RoutingIncomingMessage, RoutingServerResponse } from '../routing.js';
 
-export async function http( port: number, address: string ): Promise<Server> {
+export async function http( port: number, address: string ): Promise<Server<
+  typeof RoutingIncomingMessage,
+  typeof RoutingServerResponse
+>> {
 
-  const http_instance = createServer( {
+  const http_instance = createServer<
+    typeof RoutingIncomingMessage,
+    typeof RoutingServerResponse
+  >( {
     IncomingMessage: RoutingIncomingMessage,
     ServerResponse: RoutingServerResponse,
     keepAlive: true

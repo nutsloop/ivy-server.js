@@ -1,4 +1,4 @@
-import type { IncomingMessage } from 'node:http';
+//import type { IncomingMessage } from 'node:http';
 
 import cluster from 'node:cluster';
 import { randomUUID } from 'node:crypto';
@@ -14,7 +14,7 @@ import { crc } from '../function/crc.js';
 import { uint8 } from '../function/uint8.js';
 import { routing } from './routing.js';
 
-export async function listener<K extends IncomingMessage>( IncomingMessage: RoutingIncomingMessage, ServerResponse: RoutingServerResponse<K> ): Promise<void> {
+export async function listener<K extends RoutingIncomingMessage>( IncomingMessage: RoutingIncomingMessage, ServerResponse: RoutingServerResponse<K> ): Promise<void> {
 
   // reset the errors
   ServerResponse.incoming.set( 'error', [] );
@@ -107,6 +107,8 @@ export async function listener<K extends IncomingMessage>( IncomingMessage: Rout
   data.set( 'data', await IncomingMessage.post() );
 
   // checking the logging issue removing the if statement
+  // TODO: this part can be replaced and moved into the RoutingServerResponse class
+  //       using `this.req` to access the IncomingMessage reference.
   //if( ServerResponse.log ){
   ServerResponse.bytesRead = IncomingMessage.socket.bytesRead;
   ServerResponse.incoming.set( 'data-error', '' );
@@ -159,7 +161,7 @@ async function generate_id(): Promise<string> {
     .catch( () => randomUUID().replace( /-/g, '' ).slice( 0, 8 ) );
 }
 
-function redirect<K extends IncomingMessage>( ServerResponse: RoutingServerResponse<K> ){
+function redirect<K extends RoutingIncomingMessage>( ServerResponse: RoutingServerResponse<K> ){
 
   if ( ServerResponse.redirect ){
     ServerResponse.statusCode = 301;
