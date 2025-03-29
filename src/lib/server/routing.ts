@@ -3,6 +3,7 @@
 
 import { Path } from '@ivy-industries/cross-path';
 import Encoding from 'encoding-japanese';
+import cluster from 'node:cluster';
 import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { IncomingMessage, ServerResponse } from 'node:http';
@@ -13,6 +14,8 @@ import { inspect } from 'node:util';
 import type { DomainConfig } from './dispacher.js';
 import type { ContentTypeFileExt } from './response/content-type.js';
 
+import { crc } from '../function/crc.js';
+import { uint8 } from '../function/uint8.js';
 import { CONTENT_TYPE } from './response/content-type.js';
 
 const path = new Path();
@@ -221,7 +224,21 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
     return message[ color ]();
   }
 
-  #log_data(): void {
+  async #log_data(): Promise<void> {
+
+    this.wrk = cluster.worker?.id || 0;
+    this.req.set_ip_address();
+    this.bytesRead = this.req.socket.bytesRead;
+    this.incoming.set( 'data-error', '' );
+    this.incoming.set( 'id', await generate_id() );
+    this.incoming.set( 'ip_address', this.req.ip_address );
+    this.incoming.set( 'method', this.req.method );
+    this.incoming.set( 'url', this.req.url || 'unknown' );
+    this.incoming.set( 'httpVersion', `http/${this.req.httpVersion}` );
+    this.incoming.set( 'host', this.req.headers.host || <string>this.req.headers[ ':authority' ] || 'UNKNOWN HOST' );
+    this.incoming.set( 'user-agent', this.user_agent( this.req.headers[ 'user-agent' ] ) );
+    this.incoming.set( 'referer', this.req.headers.referer || 'no-referer' );
+    this.incoming.set( 'date', new Date().toISOString() );
 
     // checking the logging issue
     /*not set*/let method_section = this.#log_color( this.incoming.get( 'method' ), 'red' );
@@ -1412,3 +1429,9 @@ export class RoutingIncomingMessage
     return this.#url_search_params_internal;
   }
 }*/
+
+async function generate_id(): Promise<string> {
+
+  return crc( await uint8( randomUUID() ) )
+    .catch( () => randomUUID().replace( /-/g, '' ).slice( 0, 8 ) );
+}

@@ -1,6 +1,6 @@
 {
   "name": "@nutsloop/ivy-server",
-  "version": "1.0.0-alpha.43",
+  "version": "1.1.0-alpha.1",
   "license": "Apache-2.0",
   "description": "Facilitating & Enhancing Network Strength.",
   "type": "module",
