@@ -7,9 +7,6 @@ export const spin_cluster_address_usage = 'ivy-server spin|cluster --address[-a]
 export const spin_cluster_https_description = `Run https protocol`;
 export const spin_cluster_https_usage = 'ivy-server spin|cluster --https';
 
-/*export const spin_cluster_http2_description = `Run http2 protocol`;
-export const spin_cluster_http2_usage = 'ivy-server spin|cluster --http2';*/
-
 export const spin_cluster_www_root_description = `The root directory of the static files`;
 export const spin_cluster_www_root_usage = 'ivy-server spin|cluster --www-root=[path]';
 

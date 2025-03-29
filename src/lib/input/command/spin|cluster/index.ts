@@ -8,7 +8,6 @@ import { cpus_cb } from './flag/cpus/cb.js';
 import { cut_user_agent_cb } from './flag/cut-user-agent/cb.js';
 import { exec_cb } from './flag/exec/cb.js';
 import { hot_routes_cb } from './flag/hot-routes/cb.js';
-//import { http2_cb } from './flag/http2/cb.js';
 import { https_cb } from './flag/https/cb.js';
 import { live_reload_cb } from './flag/live-reload/cb.js';
 import { log_all_cb } from './flag/log-all/cb.js';
@@ -38,8 +37,6 @@ import {
   spin_cluster_cut_user_agent_usage,
   spin_cluster_hot_routes_description,
   spin_cluster_hot_routes_usage,
-  /*spin_cluster_http2_description,
-  spin_cluster_http2_usage,*/
   spin_cluster_https_description,
   spin_cluster_https_usage,
   spin_cluster_live_reload_description,
@@ -129,20 +126,6 @@ export async function spin_cluster(){
     rest: [ 'key', 'cert', 'dhparam' ],
     usage: spin_cluster_https_usage
   } );
-
-  /*  await flag( '--http2', {
-    alias: 'http2',
-    cb: {
-      fn: http2_cb,
-      type: 'sync'
-    },
-    description: spin_cluster_http2_description,
-    has_conflict: [ 'https' ],
-    is_flag_of: [ 'spin', 'cluster' ],
-    multi_type: [ 'void', 'kvp' ],
-    rest: [ 'key', 'cert', 'dhparam' ],
-    usage: spin_cluster_http2_usage
-  } );*/
 
   await flag( '--www-root', {
     alias: 'www-root',

@@ -24,7 +24,7 @@ export type CreateServerOptions =
     'redirect-to-https' |
     'to-index-html', null> &
   Map<'cpus' | 'port', number> &
-  Map<'http2' | 'https' | 'live-reload' | 'multi-domain' | 'vroutes', null | string> &
+  Map<'https' | 'live-reload' | 'multi-domain' | 'vroutes', null | string> &
   Map<'log-persistent' | 'socket', null | number> &
   Map<'routes', Map<string, string> | null | string>;
 

@@ -125,12 +125,6 @@ async function server( data: SpinClusterData ): Promise<void> {
       .https( port, address, data.get( 'https' ) );
 
   }
-  /*else if( data.get( 'http2' ) === null || data.get( 'http2' ) ){
-
-    await ( await import( '../../../server/type/http2.js' ) )
-      .http2( port, address, data.get( 'http2' ) );
-
-  }*/
   else{
 
     await ( await import( '../../../server/type/http.js' ) )
