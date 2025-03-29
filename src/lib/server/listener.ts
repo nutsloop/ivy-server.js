@@ -2,6 +2,7 @@
 
 import cluster from 'node:cluster';
 import { randomUUID } from 'node:crypto';
+import { inspect } from 'node:util';
 
 import type {
   RequestData,
@@ -15,6 +16,32 @@ import { uint8 } from '../function/uint8.js';
 import { routing } from './routing.js';
 
 export async function listener<K extends RoutingIncomingMessage>( IncomingMessage: RoutingIncomingMessage, ServerResponse: RoutingServerResponse<K> ): Promise<void> {
+
+  // checking the logging issue
+  if( cluster.isWorker && ! cluster.worker.id ){
+
+    const error = inspect( {
+      isWorker: cluster.isWorker,
+      idIsSet: cluster.worker?.id,
+      processPID: process.pid
+    } );
+    IncomingMessage.socket.destroy( Error( error ) );
+
+    return;
+  }
+
+  // checking the logging issue
+  if ( cluster.isPrimary ){
+
+    const error = inspect( {
+      isWorker: cluster.isWorker,
+      idIsSet: cluster.worker?.id,
+      processPID: process.pid
+    } );
+    IncomingMessage.socket.destroy( Error( error ) );
+
+    return;
+  }
 
   // reset the errors
   ServerResponse.incoming.set( 'error', [] );
@@ -101,6 +128,7 @@ export async function listener<K extends RoutingIncomingMessage>( IncomingMessag
   if( routing.get( 'served-by' ) ){
     ServerResponse.setHeader( 'served-by', routing.get( 'served-by-name' ) );
   }
+
 
   ServerResponse.wrk = cluster.worker?.id || 0;
   data.set( 'url_params', IncomingMessage.url_search_params );
