@@ -1,5 +1,3 @@
-//import { IncomingMessage as IM } from 'node:http';
-
 import type { RoutingServerResponse } from './lib/server/routing.js';
 import type { RoutingIncomingMessage } from './lib/server/routing.js';
 
