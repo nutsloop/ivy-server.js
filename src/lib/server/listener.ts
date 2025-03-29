@@ -120,6 +120,8 @@ export async function listener<K extends RoutingIncomingMessage>( IncomingMessag
     ServerResponse.setHeader( 'served-by', routing.get( 'served-by-name' ) );
   }
 
+  ServerResponse.set_request_data();
+
   if( ServerResponse.listener_error ){
     ServerResponse.end();
   }
@@ -135,7 +137,6 @@ export async function listener<K extends RoutingIncomingMessage>( IncomingMessag
 
       if ( typeof IncomingMessage.route_module === 'function' ) {
 
-        ServerResponse.set_request_data();
         ServerResponse.isRoute = true;
         ServerResponse.route = IncomingMessage.route_module.bind( ServerResponse.get_request_data() ) as Route;
         await ServerResponse.sendRoute( IncomingMessage );
