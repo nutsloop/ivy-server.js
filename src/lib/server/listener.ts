@@ -1,18 +1,12 @@
-//import type { IncomingMessage } from 'node:http';
-
 import cluster from 'node:cluster';
-//import { randomUUID } from 'node:crypto';
 import { inspect } from 'node:util';
 
 import type {
-  RequestData,
   Route,
   RoutingIncomingMessage,
   RoutingServerResponse
 } from './routing.js';
 
-//import { crc } from '../function/crc.js';
-//import { uint8 } from '../function/uint8.js';
 import { routing } from './routing.js';
 
 export async function listener<K extends RoutingIncomingMessage>( IncomingMessage: RoutingIncomingMessage, ServerResponse: RoutingServerResponse<K> ): Promise<void> {
@@ -126,32 +120,6 @@ export async function listener<K extends RoutingIncomingMessage>( IncomingMessag
     ServerResponse.setHeader( 'served-by', routing.get( 'served-by-name' ) );
   }
 
-  /*  ServerResponse.wrk = cluster.worker?.id || 0;
-  IncomingMessage.set_ip_address();*/
-
-  const data: RequestData = new Map();
-  data.set( 'url_params', IncomingMessage.url_search_params );
-  data.set( 'data', await IncomingMessage.post() );
-  ServerResponse.incoming.set( 'request', data );
-
-  // checking the logging issue removing the if statement
-  // TODO: this part can be replaced and moved into the RoutingServerResponse class
-  //       using `this.req` to access the IncomingMessage reference.
-  //if( ServerResponse.log ){
-  /*  ServerResponse.bytesRead = IncomingMessage.socket.bytesRead;
-  ServerResponse.incoming.set( 'data-error', '' );
-  ServerResponse.incoming.set( 'id', await generate_id() );
-  ServerResponse.incoming.set( 'ip_address', IncomingMessage.ip_address );
-  ServerResponse.incoming.set( 'method', IncomingMessage.method );
-  ServerResponse.incoming.set( 'url', IncomingMessage.url || 'unknown' );
-  ServerResponse.incoming.set( 'httpVersion', `http/${IncomingMessage.httpVersion}` );
-  ServerResponse.incoming.set( 'host', IncomingMessage.headers.host || <string>IncomingMessage.headers[ ':authority' ] || 'UNKNOWN HOST' );
-  ServerResponse.incoming.set( 'user-agent', ServerResponse.user_agent( IncomingMessage.headers[ 'user-agent' ] ) );
-  ServerResponse.incoming.set( 'referer', IncomingMessage.headers.referer || 'no-referer' );
-  ServerResponse.incoming.set( 'date', new Date().toISOString() );
-  */
-  //}
-
   if( ServerResponse.listener_error ){
     ServerResponse.end();
   }
@@ -167,8 +135,9 @@ export async function listener<K extends RoutingIncomingMessage>( IncomingMessag
 
       if ( typeof IncomingMessage.route_module === 'function' ) {
 
+        ServerResponse.set_request_data();
         ServerResponse.isRoute = true;
-        ServerResponse.route = IncomingMessage.route_module.bind( data ) as Route;
+        ServerResponse.route = IncomingMessage.route_module.bind( ServerResponse.get_request_data() ) as Route;
         await ServerResponse.sendRoute( IncomingMessage );
 
       }
@@ -182,12 +151,6 @@ export async function listener<K extends RoutingIncomingMessage>( IncomingMessag
 
   ServerResponse.close();
 }
-
-/*async function generate_id(): Promise<string> {
-
-  return crc( await uint8( randomUUID() ) )
-    .catch( () => randomUUID().replace( /-/g, '' ).slice( 0, 8 ) );
-}*/
 
 function redirect<K extends RoutingIncomingMessage>( ServerResponse: RoutingServerResponse<K> ){
 

@@ -219,6 +219,18 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
 
     return message[ color ]();
   }
+  async set_request_data(): Promise<void> {
+
+    const data: RequestData = new Map();
+    data.set( 'url_params', this.req.url_search_params );
+    data.set( 'data', await this.req.post() );
+    this.incoming.set( 'request', data );
+  }
+
+  get_request_data(): RequestData {
+
+    return this.incoming.get( 'request' );
+  }
 
   async #log_data(): Promise<void> {
 
