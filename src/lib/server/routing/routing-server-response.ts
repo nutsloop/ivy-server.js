@@ -1,5 +1,4 @@
 import { Path } from '@ivy-industries/cross-path';
-import Encoding from 'encoding-japanese';
 import cluster from 'node:cluster';
 import { readFile } from 'node:fs/promises';
 import { ServerResponse } from 'node:http';
@@ -467,9 +466,7 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     catch( error ){
 
-      const encoded = Encoding.detect( json );
-      const encoding = encoded === false ? 'not detected' : ` (${ encoded })`.magenta();
-      const error_message = `incoming not JSON data: ${this.incoming.get( 'id' ).b_white().bg_black()} ${this.incoming.get( 'ip_address' ).b_red()} ${encoding}`;
+      const error_message = `incoming not JSON data: ${this.incoming.get( 'id' ).b_white().bg_black()} ${this.incoming.get( 'ip_address' ).b_red()}`;
       this.incoming.set( 'data-error', error_message );
       if ( return_plain ){
         return json;
