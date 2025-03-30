@@ -101,12 +101,6 @@ routing.set( 'response-time', new Map( [
   [ 'end', performance.now() ]
 ] ) );
 
-
-
-
-
-
-
 export async function generate_id(): Promise<string> {
 
   return crc( await uint8( randomUUID() ) )
