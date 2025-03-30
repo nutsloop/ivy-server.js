@@ -21,6 +21,7 @@ type SpinClusterData =
     Map<'cert' | 'dhparam' | 'key', string> | null >;
 
 const server_pid = [];
+const counter: 1[] = [];
 
 export const spin_cluster_cb: CallBackAsync = async ( data: SpinClusterData, spin: boolean ): Promise<void> => {
 
@@ -85,7 +86,12 @@ export const spin_cluster_cb: CallBackAsync = async ( data: SpinClusterData, spi
         }
       } );
 
-      cluster.on( 'message', ( _worker, _message ) => {} );
+      cluster.on( 'message', ( worker, message ) => {
+        if( message?.counter ){
+          counter.push( 1 );
+          process.stdout.write( `(${worker.id})(${message.counter.toString()})[${counter.length.toString()}]\n` );
+        }
+      } );
     }
     else if( cluster.isWorker ){
 

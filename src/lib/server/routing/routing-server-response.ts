@@ -214,13 +214,20 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
     }
 
     //logging the message to the console.
-    process.stdout.write( `${ message.join( ' ' ) }\n` );
+    process.stdout.write( `${ message.join( ' ' ) }` );
 
     if ( this.incoming.has( 'data-error' ) && this.incoming.get( 'data-error' ).length > 0 ) {
-      process.stderr.write( `${this.incoming.get( 'data-error' )}\n` );
+      process.stderr.write( `\n${this.incoming.get( 'data-error' )}\n` );
     }
     if ( this.incoming.has( 'error' ) && this.incoming.get( 'error' ).length > 0 ) {
-      process.stderr.write( `${this.incoming.get( 'error' ).join( ', ' )}\n` );
+      process.stderr.write( `\n${this.incoming.get( 'error' ).join( ', ' )}\n` );
+    }
+
+    if( ! routing.get( 'cluster' ) ){
+      process.stdout.write( '\n' );
+    }
+    else {
+      process.send( { counter: this.#counter.length } );
     }
 
   }
