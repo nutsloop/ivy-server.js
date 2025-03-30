@@ -110,7 +110,7 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
     if( typeof message !== 'string' ){
 
       if( typeof message !== 'string' ){
-        process.stderr.write( 'Error: log-color is false but the message is not a string.\n' );
+        process.stderr.write( 'Error: log-color is true but the message is not a string.\n' );
         process.stderr.write( `Message: ${ inspect( message, { colors: true, depth: Infinity } ) }\n` );
         //process.stderr.write( `RoutingServerResponse: ${ inspect( this, { colors: routing.get( 'log-color' ), depth: Infinity } ) }\n` );
       }
