@@ -5,6 +5,7 @@ import { cpus } from 'node:os';
 
 import { control_room } from '../../../control/room.js';
 import { log_persistent } from '../../../log/persistent.js';
+import { process_listener } from '../../../server/process.js';
 import { routing } from '../../../server/routing.js';
 import { socket } from '../../../socket/socket.js';
 
@@ -22,7 +23,6 @@ type SpinClusterData =
     Map<'cert' | 'dhparam' | 'key', string> | null >;
 
 const server_pid = [];
-const counter: 1[] = [];
 
 export const spin_cluster_cb: CallBackAsync = async ( data: SpinClusterData, spin: boolean ): Promise<void> => {
 
@@ -98,13 +98,7 @@ export const spin_cluster_cb: CallBackAsync = async ( data: SpinClusterData, spi
         }
       } );
 
-      cluster.on( 'message', ( Worker, data ) => {
-        // logging the the total of the requests in cluster mode.
-        if( data?.counter ){
-          counter.push( 1 );
-          process.stdout.write( `(${Worker.id})(${data.counter.toString()})[${counter.length.toString()}]\n` );
-        }
-      } );
+      cluster.on( 'message', process_listener );
     }
     else if( cluster.isWorker ){
 
