@@ -99,15 +99,6 @@ export const spin_cluster_cb: CallBackAsync = async ( data: SpinClusterData, spi
       } );
 
       cluster.on( 'message', ( Worker, data ) => {
-
-        // simulating disconnection to verify the on.disconnect event in the cluster.
-        if( Worker.id === 1 ) {
-          setTimeout( () => {
-
-            Worker.disconnect();
-          }, 10000 );
-        }
-
         // logging the the total of the requests in cluster mode.
         if( data?.counter ){
           counter.push( 1 );
