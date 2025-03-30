@@ -9,6 +9,7 @@ import { routing } from '../../../server/routing.js';
 import { socket } from '../../../socket/socket.js';
 
 const path = new Path();
+const killed_by_us = new Set<number>();
 
 type SpinClusterData =
   CallBackArgvData<'address' | 'exec', string > &
@@ -68,9 +69,20 @@ export const spin_cluster_cb: CallBackAsync = async ( data: SpinClusterData, spi
       cluster.on( 'exit', ( Worker, code, signal ) => {
 
         if( server_pid.includes( Worker.process.pid ) ){
+          if( ! killed_by_us.has( Worker.process.pid ) ) {
+            server_pid.splice( server_pid.indexOf( Worker.process.pid ), 1 );
+            process.stdout.write( `worker -> ${ Worker.id } died with code [${ code }] & signal[${ signal }]. forking a new worker...\n`.yellow().underline().strong() );
+            server_pid.push( cluster.fork().process.pid );
+          }
+        }
+      } );
 
+      cluster.on( 'disconnect', ( Worker ) => {
+        if( server_pid.includes( Worker.process.pid ) ){
+          process.stdout.write( `worker -> ${ Worker.id } disconnected. killing and forking replacement...\n`.cyan().underline().strong() );
+          killed_by_us.add( Worker.process.pid );
+          Worker.process.kill();
           server_pid.splice( server_pid.indexOf( Worker.process.pid ), 1 );
-          process.stdout.write( `worker -> ${ Worker.id } died with code [${code}] & signal[${ signal }]. forking a new worker...\n`.yellow().underline().strong() );
           server_pid.push( cluster.fork().process.pid );
         }
       } );
@@ -86,12 +98,20 @@ export const spin_cluster_cb: CallBackAsync = async ( data: SpinClusterData, spi
         }
       } );
 
-      cluster.on( 'message', ( worker, message ) => {
+      cluster.on( 'message', ( Worker, data ) => {
+
+        // simulating disconnection to verify the on.disconnect event in the cluster.
+        if( Worker.id === 1 ) {
+          setTimeout( () => {
+
+            Worker.disconnect();
+          }, 10000 );
+        }
 
         // logging the the total of the requests in cluster mode.
-        if( message?.counter ){
+        if( data?.counter ){
           counter.push( 1 );
-          process.stdout.write( `(${worker.id})(${message.counter.toString()})[${counter.length.toString()}]\n` );
+          process.stdout.write( `(${Worker.id})(${data.counter.toString()})[${counter.length.toString()}]\n` );
         }
       } );
     }
