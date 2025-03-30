@@ -71,22 +71,24 @@ export const spin_cluster_cb: CallBackAsync = async ( data: SpinClusterData, spi
 
           server_pid.splice( server_pid.indexOf( _Worker.process.pid ), 1 );
           process.stdout.write( `worker -> ${ _Worker.id } died with code [${code}] & signal[${ signal }]\n` );
-          cluster.fork();
+          server_pid.push( cluster.fork().process.pid );
         }
       } );
 
       cluster.on( 'listening', ( _Worker, _address ) => {} );
 
       cluster.on( 'online', ( _Worker ) => {} );
-      cluster.on( 'fork', ( _Worker ) => {
-        if( server_pid.includes( _Worker.process.pid ) ){
-          process.stdout.write( ` ${'|'.red()}${'   wrk'.red().underline()}(${ _Worker.id }) ${_Worker.process.pid}` );
+      cluster.on( 'fork', ( Worker ) => {
+        if( server_pid.includes( Worker.process.pid ) ){
+          process.stdout.write( ` ${'|'.red()}${'   wrk'.red().underline()}(${ Worker.id }) ${Worker.process.pid}` );
           process.stdout.write( ` listening on ${ routing.get( 'address' ).magenta() }:` );
           process.stdout.write( `${ routing.get( 'port' ).toFixed().yellow() }\n` );
         }
       } );
 
       cluster.on( 'message', ( worker, message ) => {
+
+        // logging the the total of the requests in cluster mode.
         if( message?.counter ){
           counter.push( 1 );
           process.stdout.write( `(${worker.id})(${message.counter.toString()})[${counter.length.toString()}]\n` );
