@@ -15,7 +15,7 @@ export async function definition(): Promise<void> {
     name: 'ivy-server',
     npmjs: 'https://www.npmjs.com/~nutsloop',
     usage: 'ivy-server [--global-flag=[options]] <command> [--flag=[options]]',
-    version: '1.2.0-alpha.3',
+    version: '1.2.0-alpha.4',
     website: 'https://github.com/sponsors/nutsloop'
   } );
 

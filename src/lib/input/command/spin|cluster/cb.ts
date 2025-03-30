@@ -65,12 +65,12 @@ export const spin_cluster_cb: CallBackAsync = async ( data: SpinClusterData, spi
         server_pid.push( cluster.fork().process.pid );
       }
 
-      cluster.on( 'exit', ( _Worker, code, signal ) => {
+      cluster.on( 'exit', ( Worker, code, signal ) => {
 
-        if( server_pid.includes( _Worker.process.pid ) ){
+        if( server_pid.includes( Worker.process.pid ) ){
 
-          server_pid.splice( server_pid.indexOf( _Worker.process.pid ), 1 );
-          process.stdout.write( `worker -> ${ _Worker.id } died with code [${code}] & signal[${ signal }]\n` );
+          server_pid.splice( server_pid.indexOf( Worker.process.pid ), 1 );
+          process.stdout.write( `worker -> ${ Worker.id } died with code [${code}] & signal[${ signal }]. forking a new worker...\n`.yellow().underline().strong() );
           server_pid.push( cluster.fork().process.pid );
         }
       } );
