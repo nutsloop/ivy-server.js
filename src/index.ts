@@ -1,5 +1,5 @@
-import type { RoutingServerResponse } from './lib/server/routing.js';
-import type { RoutingIncomingMessage } from './lib/server/routing.js';
+import type { RoutingIncomingMessage } from './lib/server/routing/routing-incoming-message.js';
+import type { RoutingServerResponse } from './lib/server/routing/routing-server-response.js';
 
 export type { ControlRoomConfig } from './lib/control/room.js';
 export type ServerResponse = RoutingServerResponse<RoutingIncomingMessage>;

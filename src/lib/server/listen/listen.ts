@@ -1,7 +1,8 @@
 import cluster from 'node:cluster';
 import { Server } from 'node:http';
 
-import type { RoutingIncomingMessage, RoutingServerResponse } from '../routing.js';
+import type { RoutingIncomingMessage } from '../routing/routing-incoming-message.js';
+import type { RoutingServerResponse } from '../routing/routing-server-response.js';
 
 import { routing } from '../routing.js';
 

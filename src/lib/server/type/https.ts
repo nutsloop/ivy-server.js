@@ -5,7 +5,8 @@ import { createServer } from 'node:https';
 
 import { listen } from '../listen/listen.js';
 import { listener } from '../listener.js';
-import { RoutingIncomingMessage, RoutingServerResponse } from '../routing.js';
+import { RoutingIncomingMessage } from '../routing/routing-incoming-message.js';
+import { RoutingServerResponse } from '../routing/routing-server-response.js';
 import { catcher } from './exception/catcher.js';
 import { destructuring_certs_path } from './shared/destructuring_certs_path.js';
 

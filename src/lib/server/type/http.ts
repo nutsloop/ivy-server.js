@@ -4,7 +4,8 @@ import { createServer } from 'node:http';
 
 import { listen } from '../listen/listen.js';
 import { listener } from '../listener.js';
-import { RoutingIncomingMessage, RoutingServerResponse } from '../routing.js';
+import { RoutingIncomingMessage } from '../routing/routing-incoming-message.js';
+import { RoutingServerResponse } from '../routing/routing-server-response.js';
 
 export async function http( port: number, address: string ): Promise<Server<
   typeof RoutingIncomingMessage,
