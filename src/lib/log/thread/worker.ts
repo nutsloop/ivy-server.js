@@ -53,7 +53,7 @@ if( logConfig?.init ){
   }
 }
 
-const control_room = process.argv[ 1 ] === 'true' ? true : false;
+const control_room = process.argv[ 1 ] === 'true';
 
 // if control room is enabled
 if( control_room ){
