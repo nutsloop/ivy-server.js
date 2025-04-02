@@ -124,18 +124,6 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
 
     return message[ color ]();
   }
-  async set_request_data(): Promise<void> {
-
-    const data: RequestData = new Map();
-    data.set( 'url_params', this.req.get() );
-    data.set( 'data', await this.req.post() );
-    this.incoming.set( 'request', data );
-  }
-
-  get_request_data(): RequestData {
-
-    return this.incoming.get( 'request' );
-  }
 
   async #log_data(): Promise<void> {
 
@@ -213,16 +201,20 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
       process.send( { 'control-room': message.join( '|' ) } );
     }
 
+    // TODO: fixing with the wrk for the log to stdout.
     //logging the message to the console.
     process.stdout.write( `${ message.join( ' ' ) }` );
 
+    // TODO: including the error messages into the message itself
     if ( this.incoming.has( 'data-error' ) && this.incoming.get( 'data-error' ).length > 0 ) {
       process.stderr.write( `\n${this.incoming.get( 'data-error' )}\n` );
     }
+    // TODO: including the error messages into the message itself
     if ( this.incoming.has( 'error' ) && this.incoming.get( 'error' ).length > 0 ) {
       process.stderr.write( `\n${this.incoming.get( 'error' ).join( ', ' )}\n` );
     }
 
+    //TODO: sending anyway to the wrk log
     if( ! routing.get( 'cluster' ) ){
       process.stdout.write( '\n' );
     }
@@ -239,17 +231,17 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
     }
 
     if( ! this.incoming.has( 'request' ) ){
-      this.incoming.get ( 'error' ).push( '[data] is missing.' );
+      this.incoming.get ( 'error' ).push( `ServerResponse.incoming.has('request') is false.` );
 
       return;
     }
 
     if( ! this.incoming.get( 'request' ).has( 'url_params' ) ){
-      this.incoming.get( 'error' ).push( '[url_params] is missing.' );
+      this.incoming.get( 'error' ).push( `ServerResponse.incoming.get('request').has('url-params') is not set.` );
     }
 
     if( ! this.incoming.get( 'request' ).has( 'data' ) ){
-      this.incoming.get( 'error' ).push( '[data] is missing.' );
+      this.incoming.get( 'error' ).push( `ServerResponse.incoming.get('request').has('data') is not set.` );
     }
   }
 
@@ -343,11 +335,11 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
 
       if ( routing.get( 'log-all' ) ) {
 
-        this.#log_data();
+        this.#log_data().catch( error => process.stderr.write( `${ error }\n` ) );
       }
       else if ( file_extension === '.html' || file_extension.length === 0 ) {
 
-        this.#log_data();
+        this.#log_data().catch( error => process.stderr.write( `${ error }\n` ) );
       }
     }
 
@@ -373,7 +365,7 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
     const internal_server_error = Buffer.from( 'Internal Server Error' );
     if ( this.route.constructor.name === 'AsyncFunction' ) {
 
-      const response = await this.route( IncomingMessage, this );
+      const response = await this.route.call( null, IncomingMessage, this );
       if ( Buffer.isBuffer( response ) ) {
         this.bytesWritten = response.length;
         this.writeHead( 200 ).end( response );
@@ -387,7 +379,7 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
     }
     else if ( this.route instanceof Promise || this.route instanceof Function ) {
 
-      let response = this.route( IncomingMessage, this );
+      let response = this.route.call( null, IncomingMessage, this );
       if ( response instanceof Promise ) {
         response = await response;
       }
