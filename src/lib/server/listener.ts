@@ -1,7 +1,7 @@
 import cluster from 'node:cluster';
 import { inspect } from 'node:util';
 
-import type { Route } from './routing.js';
+import type { RequestData, Route } from './routing.js';
 import type { RoutingIncomingMessage } from './routing/routing-incoming-message.js';
 import type { RoutingServerResponse } from './routing/routing-server-response.js';
 
@@ -118,7 +118,10 @@ export async function listener<K extends RoutingIncomingMessage>( IncomingMessag
     ServerResponse.setHeader( 'served-by', routing.get( 'served-by-name' ) );
   }
 
-  ServerResponse.set_request_data();
+  const data: RequestData = new Map();
+  data.set( 'url_params', IncomingMessage.get() );
+  data.set( 'data', await IncomingMessage.post() );
+  ServerResponse.incoming.set( 'request', data );
 
   if( ServerResponse.listener_error ){
     ServerResponse.end();
@@ -136,7 +139,7 @@ export async function listener<K extends RoutingIncomingMessage>( IncomingMessag
       if ( typeof IncomingMessage.route_module === 'function' ) {
 
         ServerResponse.isRoute = true;
-        ServerResponse.route = IncomingMessage.route_module.bind( ServerResponse.get_request_data() ) as Route;
+        ServerResponse.route = IncomingMessage.route_module.bind( data ) as Route;
         await ServerResponse.sendRoute( IncomingMessage );
 
       }
