@@ -53,19 +53,21 @@ export type Routing =
   Map<'multi-domain', DomainConfig> &
   Map<'virtual-routes', string[]>;
 
-type ServerTypesResponse =
-  /*RoutingHttp2ServerResponse<ServerHttp2Stream> | */RoutingServerResponse<RoutingIncomingMessage>
-type ServerTypeIncoming =
-  /*RoutingHttp2IncomingMessage | */RoutingIncomingMessage
+export type RequestData = Map<'data', Buffer | undefined> & Map<'url_params', URLSearchParams | undefined>;
+
+/**
+ * why is this done this way?
+ */
+type ServerTypesResponse = RoutingServerResponse<RoutingIncomingMessage>
+type ServerTypeIncoming = RoutingIncomingMessage
+
 /**
  * todo - rewrites Routes Type using rest args and dynamic types
- * todo - add the 'this' data type to the Route type
  */
-type AsyncRoute = ( IncomingMessage: ServerTypeIncoming, ServerResponse: ServerTypesResponse ) => Promise<Buffer | void>;
-type SyncRoute = ( IncomingMessage: ServerTypeIncoming, ServerResponse: ServerTypesResponse ) => Buffer | void;
-type PromiseRoute = ( IncomingMessage: ServerTypeIncoming, ServerResponse: ServerTypesResponse ) => PromiseLike<Buffer | void>;
+type AsyncRoute = ( this: RequestData, IncomingMessage: ServerTypeIncoming, ServerResponse: ServerTypesResponse ) => Promise<Buffer | void>;
+type SyncRoute = ( this: RequestData, IncomingMessage: ServerTypeIncoming, ServerResponse: ServerTypesResponse ) => Buffer | void;
+type PromiseRoute = ( this: RequestData, IncomingMessage: ServerTypeIncoming, ServerResponse: ServerTypesResponse ) => PromiseLike<Buffer | void>;
 export type Route = AsyncRoute | PromiseRoute | SyncRoute;
-export type RequestData = Map<'data', Buffer | undefined> & Map<'url_params', URLSearchParams | undefined>;
 
 export const routing: Routing = new Map();
 routing.set( 'hot-routes', false );
@@ -97,9 +99,7 @@ routing.set( 'redirect-to-https', false );
 routing.set( 'routes', new Map() );
 routing.set( 'secure', false );
 routing.set( 'cut-user-agent', false );
-routing.set( 'response-time', new Map( [
-  [ 'end', performance.now() ]
-] ) );
+routing.set( 'response-time', new Map( [ [ 'end', performance.now() ] ] ) );
 
 export async function generate_id(): Promise<string> {
 
