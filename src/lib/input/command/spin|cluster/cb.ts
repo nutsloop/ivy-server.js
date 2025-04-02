@@ -23,6 +23,7 @@ type SpinClusterData =
     Map<'cert' | 'dhparam' | 'key', string> | null >;
 
 const server_pid = [];
+const log_pid = [];
 
 export const spin_cluster_cb: CallBackAsync = async ( data: SpinClusterData, spin: boolean ): Promise<void> => {
 
@@ -30,9 +31,11 @@ export const spin_cluster_cb: CallBackAsync = async ( data: SpinClusterData, spi
     process.stdout.write( ` ${'|'.red()}${'ivy'.red().underline()}(0) ${process.pid}\n` );
   }
 
+  await spawn_log_wrk( routing.get( 'log' ) );
   await spawn_control_room( data.has( 'control-room' ) );
   await spawn_log_persistent( data.has( 'log-persistent' ), data.get( 'log-persistent' ) );
   await spawn_socket( data.has( 'socket' ), data.get( 'socket' ) );
+
   if( spin ){
 
     await server( data );
@@ -142,6 +145,33 @@ async function server( data: SpinClusterData ): Promise<void> {
 
     await ( await import( '../../../server/type/http.js' ) )
       .http( port, address );
+  }
+}
+
+async function spawn_log_wrk( invoked_flag: boolean ): Promise<void> {
+
+  if ( invoked_flag && cluster.isPrimary ){
+    const log_wrk = [
+      path.dirname( new URL( import.meta.url ).pathname ),
+      '..',
+      '..',
+      '..',
+      'log',
+      'wrk.js'
+    ];
+
+    cluster.setupPrimary( {
+      exec: path.resolve( ...log_wrk ),
+    } );
+
+    log_pid.push( cluster.fork().process.pid );
+
+    cluster.on( 'fork', ( Worker ) => {
+
+      if( log_pid.includes( Worker.process.pid ) ){
+        process.stdout.write( ` ${'|'.red()}${'   log'.red().underline()}(0) ${Worker.process.pid}\n` );
+      }
+    } );
   }
 }
 
