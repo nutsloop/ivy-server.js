@@ -65,6 +65,11 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
 
   constructor( ...args: ConstructorParameters<typeof ServerResponse> ) {
     super( ...args as ConstructorParameters<typeof ServerResponse<K>> );
+
+    this.socket.on( 'error', ( error: Error ) => {
+      process.stderr.write( error.message );
+      cluster.worker?.disconnect();
+    } );
   }
 
   #cut_user_agent( incoming_user_agent: string ): string {
