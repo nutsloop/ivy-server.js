@@ -1,6 +1,3 @@
-import cluster from 'node:cluster';
-import { inspect } from 'node:util';
-
 import type { RequestData, Route } from './routing.js';
 import type { RoutingIncomingMessage } from './routing/routing-incoming-message.js';
 import type { RoutingServerResponse } from './routing/routing-server-response.js';
@@ -8,32 +5,6 @@ import type { RoutingServerResponse } from './routing/routing-server-response.js
 import { routing } from './routing.js';
 
 export async function listener<K extends RoutingIncomingMessage>( IncomingMessage: RoutingIncomingMessage, ServerResponse: RoutingServerResponse<K> ): Promise<void> {
-
-  // checking the logging issue
-  if( cluster.isWorker && ! cluster.worker.id ){
-
-    const error = inspect( {
-      isWorker: cluster.isWorker,
-      idIsSet: cluster.worker?.id,
-      processPID: process.pid
-    } );
-    IncomingMessage.socket.destroy( Error( error ) );
-
-    return;
-  }
-
-  // checking the logging issue
-  if ( cluster.isPrimary ){
-
-    const error = inspect( {
-      isWorker: cluster.isWorker,
-      idIsSet: cluster.worker?.id,
-      processPID: process.pid
-    } );
-    IncomingMessage.socket.destroy( Error( error ) );
-
-    return;
-  }
 
   // reset the errors
   ServerResponse.incoming.set( 'error', [] );
@@ -61,7 +32,7 @@ export async function listener<K extends RoutingIncomingMessage>( IncomingMessag
     ServerResponse.statusCode = 400;
   }
 
-  const request_host: string = IncomingMessage.headers.host || IncomingMessage.headers[ ':authority' ] as string || 'UNKNOWN HOST';
+  const request_host: string = IncomingMessage.headers.host || <string>IncomingMessage.headers[ ':authority' ] || 'UNKNOWN HOST';
   const secure = routing.get( 'secure' );
   const url = IncomingMessage.url || '/';
   const multi_domain = routing.get( 'multi-domain' );
