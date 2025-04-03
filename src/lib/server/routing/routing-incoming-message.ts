@@ -52,15 +52,17 @@ export class RoutingIncomingMessage
 
   #cluster_check() : void {
 
-    if ( ( cluster.isWorker && ! cluster.worker?.id ) || cluster.isPrimary ) {
+    if( routing.get( 'cluster' ) ) {
+      if ( ( cluster.isWorker && ! cluster.worker?.id ) || cluster.isPrimary ) {
 
-      const error = inspect( {
-        isWorker: cluster.isWorker,
-        idIsSet: cluster.worker?.id,
-        processPID: process.pid,
-      } );
+        const error = inspect( {
+          isWorker: cluster.isWorker,
+          idIsSet: cluster.worker?.id,
+          processPID: process.pid,
+        } );
 
-      this.socket.destroy( Error( error ) );
+        this.socket.destroy( Error( error ) );
+      }
     }
   }
 
