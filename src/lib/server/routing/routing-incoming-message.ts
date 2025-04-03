@@ -1,6 +1,8 @@
 import { Path } from '@ivy-industries/cross-path';
+import cluster from 'node:cluster';
 import { randomUUID } from 'node:crypto';
 import { IncomingMessage } from 'node:http';
+import { inspect } from 'node:util';
 
 import type { Route } from '../routing.js';
 import type { RoutingServerResponse } from './routing-server-response.js';
@@ -39,6 +41,27 @@ export class RoutingIncomingMessage
 
   constructor( ...args: ConstructorParameters<typeof IncomingMessage> ) {
     super( ...args );
+
+    this.socket.on( 'error', ( error ) => {
+      process.stderr.write( error.message );
+      cluster.worker?.disconnect();
+    } );
+
+    this.#cluster_check();
+  }
+
+  #cluster_check() : void {
+
+    if ( ( cluster.isWorker && ! cluster.worker?.id ) || cluster.isPrimary ) {
+
+      const error = inspect( {
+        isWorker: cluster.isWorker,
+        idIsSet: cluster.worker?.id,
+        processPID: process.pid,
+      } );
+
+      this.socket.destroy( Error( error ) );
+    }
   }
 
   /**
