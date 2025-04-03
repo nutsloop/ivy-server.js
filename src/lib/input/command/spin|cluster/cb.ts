@@ -169,7 +169,8 @@ async function spawn_log_wrk( invoked_flag: boolean ): Promise<void> {
     cluster.on( 'fork', ( Worker ) => {
 
       if( log_pid.includes( Worker.process.pid ) ){
-        process.stdout.write( ` ${'|'.red()}${'   log'.red().underline()}(0) ${Worker.process.pid}\n` );
+        routing.set( 'log_worker', Worker );
+        process.stdout.write( ` ${'|'.red()}${'   log'.red().underline()}(${ Worker.id }) ${Worker.process.pid}\n` );
       }
     } );
   }
