@@ -1,11 +1,9 @@
-import type { Worker } from 'node:cluster';
+import { type Worker } from 'node:cluster';
 
-const counter: 1[] = [];
+import { routing } from './routing.js';
 
-export function process_listener( Worker: Worker, data: {counter: number} ) {
-
-  if( data?.counter ){
-    counter.push( 1 );
-    process.stdout.write( `(${Worker.id})(${data.counter.toString()})[${counter.length.toString()}]\n` );
+export function process_listener( _Worker: Worker, data: { log_worker:boolean, counter: number, worker_id: number, message: string[]} ) {
+  if( data?.log_worker ){
+    routing.get( 'log_worker' ).send( data );
   }
 }
