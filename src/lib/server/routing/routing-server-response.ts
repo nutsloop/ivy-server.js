@@ -65,11 +65,6 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
 
   constructor( ...args: ConstructorParameters<typeof ServerResponse> ) {
     super( ...args as ConstructorParameters<typeof ServerResponse<K>> );
-
-    this.socket.on( 'error', ( error: Error ) => {
-      process.stderr.write( error.message );
-      cluster.worker?.disconnect();
-    } );
   }
 
   #cut_user_agent( incoming_user_agent: string ): string {
@@ -208,7 +203,7 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
 
     // TODO: fixing with the wrk for the log to stdout.
     //logging the message to the console.
-    process.stdout.write( `${ message.join( ' ' ) }` );
+    //process.stdout.write( `${ message.join( ' ' ) }` );
 
     // TODO: including the error messages into the message itself
     if ( this.incoming.has( 'data-error' ) && this.incoming.get( 'data-error' ).length > 0 ) {
@@ -221,10 +216,10 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
 
     //TODO: sending anyway to the wrk log
     if( ! routing.get( 'cluster' ) ){
-      process.stdout.write( '\n' );
+      routing.get( 'log_worker' ).send( { log_worker: true, counter: this.#counter.length, worker_id: this.wrk, message: message } );
     }
     else {
-      process.send( { counter: this.#counter.length } );
+      process.send( { log_worker: true, counter: this.#counter.length, worker_id: this.wrk, message: message } );
     }
 
   }
