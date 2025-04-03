@@ -1,4 +1,5 @@
 import { Path } from '@ivy-industries/cross-path';
+import { type Worker } from 'node:cluster';
 import { randomUUID } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
 
@@ -47,6 +48,7 @@ export type Routing =
     'socket' |
     'to-index-html', boolean> &
   Map<'counter', 1[]> &
+  Map<'log_worker', Worker> &
   Map<'cpus' | 'port', number> &
   Map<'response-time', Map<'end', number>> &
   Map<'routes', RoutingRoute> &
@@ -70,6 +72,7 @@ type PromiseRoute = ( this: RequestData, IncomingMessage: ServerTypeIncoming, Se
 export type Route = AsyncRoute | PromiseRoute | SyncRoute;
 
 export const routing: Routing = new Map();
+routing.set( 'log_worker', undefined );
 routing.set( 'hot-routes', false );
 routing.set( 'port', 3001 );
 routing.set( 'address', '0.0.0.0' );
