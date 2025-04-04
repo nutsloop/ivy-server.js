@@ -1,4 +1,5 @@
 import type { Server } from 'node:http';
+import type { Socket } from 'node:net';
 
 import { createServer } from 'node:http';
 import { inspect } from 'node:util';
@@ -13,7 +14,7 @@ export async function http( port: number, address: string ): Promise<Server<
   typeof RoutingServerResponse
 >> {
 
-  const http_instance = createServer<
+  const http_server = createServer<
     typeof RoutingIncomingMessage,
     typeof RoutingServerResponse
   >( {
@@ -22,17 +23,20 @@ export async function http( port: number, address: string ): Promise<Server<
     keepAlive: true
   }, listener );
 
-  listen( http_instance, port, address );
+  listen( http_server, port, address );
 
-  http_instance.on( 'error', ( error ) => {
+  http_server.on( 'error', ( error ) => {
     console.trace( inspect( error, true, Infinity, true ) );
     process.exit( 65 );
   } );
 
-  http_instance.on( 'clientError', ( error, socket ) => {
-    console.trace( inspect( error, true, Infinity, true ) );
-    socket.end( 'HTTP/1.1 400 Bad Request\r\n\r\n' );
+  http_server.on( 'clientError', ( error: Error, socket: Socket ) => {
+    console.trace( {
+      reason: 'clientError'.bg_red().white(),
+      error: error.message.red(),
+      remote_address: socket.remoteAddress.red().underline().strong()
+    } );
   } );
 
-  return http_instance;
+  return http_server;
 }

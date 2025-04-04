@@ -1,4 +1,5 @@
 import type { Server } from 'node:https';
+import type { Socket } from 'node:net';
 
 import { createServer } from 'node:https';
 import { inspect } from 'node:util';
@@ -38,9 +39,12 @@ export async function https( port:number, address:string, certs_path: Map<'cert'
     process.exit( 65 );
   } );
 
-  https_server.on( 'clientError', ( error, socket ) => {
-    console.trace( inspect( error, true, Infinity, true ) );
-    socket.end( 'HTTP/1.1 400 Bad Request\r\n\r\n' );
+  https_server.on( 'clientError', ( error: Error, socket: Socket ) => {
+    console.trace( {
+      reason: 'clientError'.bg_red().white(),
+      error: error.message.red(),
+      remote_address: socket.remoteAddress.red().underline().strong()
+    } );
   } );
 
   return https_server;
