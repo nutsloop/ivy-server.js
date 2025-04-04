@@ -27,13 +27,12 @@ export async function http( port: number, address: string ): Promise<Server<
 
   http_server.on( 'error', ( error ) => {
     console.trace( inspect( error, true, Infinity, true ) );
-    process.exit( 65 );
   } );
 
   http_server.on( 'clientError', ( error: Error & { code?: string }, socket: Socket ) => {
     const ip = socket.remoteAddress ?? 'unknown';
-    console.trace( { clientErrorHTTP: error.code } );
     process.stderr.write( 'clientError\n'.bg_red().white() );
+    process.stderr.write( `{ HTTP: ${ error.code.magenta().underline().strong() } }\n`.white().strong() );
     process.stderr.write( `${error.message.red()}\n` );
     process.stderr.write( `${ip.red().underline().strong()}\n` );
   } );

@@ -36,13 +36,12 @@ export async function https( port:number, address:string, certs_path: Map<'cert'
 
   https_server.on( 'error', ( error ) => {
     console.trace( inspect( error, true, Infinity, true ) );
-    process.exit( 65 );
   } );
 
   https_server.on( 'clientError', ( error: Error & { code?: string }, socket: Socket ) => {
     const ip = socket.remoteAddress ?? 'unknown';
-    console.trace( { clientErrorHTTPS: error.code } );
     process.stderr.write( 'clientError\n'.bg_red().white() );
+    process.stderr.write( `{ HTTPS: ${ error.code.magenta().underline().strong() } }\n`.white().strong() );
     process.stderr.write( `${error.message.red()}\n` );
     process.stderr.write( `${ip.red().underline().strong()}\n` );
   } );
