@@ -40,7 +40,6 @@ export async function https( port:number, address:string, certs_path: Map<'cert'
 
   https_server.on( 'clientError', ( error: Error & { code?: string }, socket: Socket ) => {
     const ip = socket.remoteAddress ?? 'unknown';
-    process.stderr.write( `${'clientError'.bg_red().white()}\n` );
     process.stderr.write( `{ ${`HTTPS`.white().strong()}: ${ error.code.magenta().underline().strong() }, ${`error`.white().strong()}: ${error.message.strong() } }\n` );
     process.stderr.write( `${ip.red().underline().strong()}\n` );
   } );
