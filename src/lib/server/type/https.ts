@@ -39,12 +39,12 @@ export async function https( port:number, address:string, certs_path: Map<'cert'
     process.exit( 65 );
   } );
 
-  https_server.on( 'clientError', ( error: Error, socket: Socket ) => {
-    console.trace( {
-      reason: 'clientError'.bg_red().white(),
-      error: error.message.red(),
-      remote_address: socket.remoteAddress.red().underline().strong()
-    } );
+  https_server.on( 'clientError', ( error: Error & { code?: string }, socket: Socket ) => {
+    const ip = socket.remoteAddress ?? 'unknown';
+    console.trace( { clientErrorHTTPS: error.code } );
+    process.stderr.write( 'clientError\n'.bg_red().white() );
+    process.stderr.write( `${error.message.red()}\n` );
+    process.stderr.write( `${ip.red().underline().strong()}\n` );
   } );
 
   return https_server;

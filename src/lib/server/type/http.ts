@@ -30,12 +30,12 @@ export async function http( port: number, address: string ): Promise<Server<
     process.exit( 65 );
   } );
 
-  http_server.on( 'clientError', ( error: Error, socket: Socket ) => {
-    console.trace( {
-      reason: 'clientError'.bg_red().white(),
-      error: error.message.red(),
-      remote_address: socket.remoteAddress.red().underline().strong()
-    } );
+  http_server.on( 'clientError', ( error: Error & { code?: string }, socket: Socket ) => {
+    const ip = socket.remoteAddress ?? 'unknown';
+    console.trace( { clientErrorHTTP: error.code } );
+    process.stderr.write( 'clientError\n'.bg_red().white() );
+    process.stderr.write( `${error.message.red()}\n` );
+    process.stderr.write( `${ip.red().underline().strong()}\n` );
   } );
 
   return http_server;
