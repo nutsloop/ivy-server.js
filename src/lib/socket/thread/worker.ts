@@ -1,6 +1,6 @@
 #!/usr/bin/env -S node
 
-import { extends_proto } from '@ivy-industries/ansi';
+import { extends_proto } from '@nutsloop/ivy-ansi';
 import cluster from 'node:cluster';
 
 import { SocketConfig } from '../socket.js';

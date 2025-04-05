@@ -1,6 +1,6 @@
 import type { CLILogic, ParsedArgv } from '@nutsloop/ivy-input';
 
-import { extends_proto } from '@ivy-industries/ansi';
+import { extends_proto } from '@nutsloop/ivy-ansi';
 import { cli, run, set_global_flag_declaration } from '@nutsloop/ivy-input';
 
 import { definition } from './input/definition.js';

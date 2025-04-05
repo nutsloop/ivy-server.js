@@ -1,6 +1,6 @@
 import type { CallBackFlagArgvData, CallBackFlagAsync } from '@nutsloop/ivy-input';
 
-import { isValid } from '@ivy-industries/cross-path';
+import { isValid } from '@nutsloop/ivy-cross-path';
 import { watcher } from '@nutsloop/ivy-watcher';
 import cluster from 'node:cluster';
 import { WebSocketServer } from 'ws';

@@ -1,4 +1,4 @@
-import { Path } from '@ivy-industries/cross-path';
+import { Path } from '@nutsloop/ivy-cross-path';
 import { CallBackFlagAsync } from '@nutsloop/ivy-input';
 
 import { routing } from '../../../../../server/routing.js';

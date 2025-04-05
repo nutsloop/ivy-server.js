@@ -1,6 +1,6 @@
 import type { CallBackFlagAsync } from '@nutsloop/ivy-input';
 
-import { isFile } from '@ivy-industries/cross-path';
+import { isFile } from '@nutsloop/ivy-cross-path';
 
 import { routing } from '../../../../../server/routing.js';
 

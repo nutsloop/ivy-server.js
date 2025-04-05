@@ -1,4 +1,4 @@
-import { isFile, isValid } from '@ivy-industries/cross-path';
+import { isFile, isValid } from '@nutsloop/ivy-cross-path';
 import { CallBackFlagAsync } from '@nutsloop/ivy-input';
 import { readFile } from 'node:fs/promises';
 

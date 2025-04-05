@@ -1,4 +1,4 @@
-import { Path } from '@ivy-industries/cross-path';
+import { Path } from '@nutsloop/ivy-cross-path';
 import cluster from 'node:cluster';
 import { readFile } from 'node:fs/promises';
 import { ServerResponse } from 'node:http';

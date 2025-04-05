@@ -1,6 +1,6 @@
 import type { CallBackFlagAsync } from '@nutsloop/ivy-input';
 
-import { isValid, parse, resolve } from '@ivy-industries/cross-path';
+import { isValid, parse, resolve } from '@nutsloop/ivy-cross-path';
 import { readdir } from 'fs/promises';
 
 import { routing } from '../../../../../server/routing.js';

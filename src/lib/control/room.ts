@@ -1,4 +1,4 @@
-import { Path } from '@ivy-industries/cross-path';
+import { Path } from '@nutsloop/ivy-cross-path';
 import cluster from 'node:cluster';
 
 import { OfMessage } from './thread/worker.js';

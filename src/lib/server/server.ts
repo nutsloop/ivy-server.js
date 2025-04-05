@@ -1,4 +1,4 @@
-import { extends_proto } from '@ivy-industries/ansi';
+import { extends_proto } from '@nutsloop/ivy-ansi';
 
 import type { Route } from './routing.js';
 

@@ -1,7 +1,7 @@
 import type { ServerOpts, Socket } from 'node:net';
 import type { TLSSocket, TlsOptions } from 'node:tls';
 
-import { Path } from '@ivy-industries/cross-path';
+import { Path } from '@nutsloop/ivy-cross-path';
 import cluster from 'node:cluster';
 
 import { routing } from '../server/routing.js';
