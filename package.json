@@ -1,6 +1,6 @@
 {
   "name": "@nutsloop/ivy-server",
-  "version": "1.2.0-alpha.18",
+  "version": "1.2.0-alpha.19",
   "license": "Apache-2.0",
   "description": "Facilitating & Enhancing Network Strength.",
   "type": "module",
@@ -35,11 +35,11 @@
     "nodemon-run-example": "nodemon -w ./ ./example/server.js --ext .js"
   },
   "dependencies": {
-    "@ivy-industries/ansi": "^1.0.0-alpha.1",
-    "@ivy-industries/async-import-meta-resolve": "^1.0.0-alpha.1",
-    "@ivy-industries/cross-path": "^1.0.0-alpha.1",
-    "@nutsloop/ivy-watcher": "^1.0.1-alpha.1",
-    "@nutsloop/ivy-input": "^1.0.1-alpha.1",
+    "@nutsloop/ivy-ansi": "^1.0.0-alpha.3",
+    "@nutsloop/ivy-async-import-meta-resolve": "^1.0.0-alpha.1",
+    "@nutsloop/ivy-cross-path": "^1.0.0-alpha.2",
+    "@nutsloop/ivy-watcher": "^1.0.1-alpha.3",
+    "@nutsloop/ivy-input": "^1.0.1-alpha.2",
     "ws": "^8.18.1"
   },
   "devDependencies": {
