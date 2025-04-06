@@ -49,7 +49,11 @@ export async function listener<K extends RoutingIncomingMessage>( IncomingMessag
         ServerResponse.multi_domain = true;
         const domain = multi_domain.get( request_host );
 
-        ServerResponse.www_root = routing.get( 'www-root' ) + '/' + domain.www_root;
+        let www_root = routing.get( 'www-root' );
+        if ( domain.www_root.length > 0 ){
+          www_root = www_root + '/' + domain.www_root;
+        }
+        ServerResponse.www_root = www_root;
 
         if ( domain.redirect_to_https && ! secure ) {
           process.stdout.write( `redirect -> '${ request_host }' => has been sent.\n` );
