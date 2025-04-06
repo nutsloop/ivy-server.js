@@ -2,6 +2,7 @@ import type { RequestData, Route } from './routing.js';
 import type { RoutingIncomingMessage } from './routing/routing-incoming-message.js';
 import type { RoutingServerResponse } from './routing/routing-server-response.js';
 
+import { Domain } from './dispacher.js';
 import { routing } from './routing.js';
 
 export async function listener<K extends RoutingIncomingMessage>( IncomingMessage: RoutingIncomingMessage, ServerResponse: RoutingServerResponse<K> ): Promise<void> {
@@ -44,19 +45,43 @@ export async function listener<K extends RoutingIncomingMessage>( IncomingMessag
 
   if ( ! is_acme_challenge ) {
 
-    if ( multi_domain.size > 0 && ! ServerResponse.listener_error ) {
-      if ( multi_domain.has( request_host ) ) {
-        ServerResponse.multi_domain = true;
-        const domain = multi_domain.get( request_host );
+    const white_listed: string[] = [];
+    const redirect_to: string[] = [];
+    let domain_config: Domain = undefined;
 
+    if ( multi_domain.size > 0 && ! ServerResponse.listener_error ) {
+
+      for ( const key of multi_domain.keys() ) {
+
+        if ( key.includes( request_host ) ) {
+          domain_config = multi_domain.get( key );
+          white_listed.push( request_host );
+          if( domain_config.redirect_to.length > 0 ){
+            redirect_to.push( domain_config.redirect_to );
+          }
+          break;
+        }
+      }
+
+      if ( domain_config !== undefined ) {
+        ServerResponse.multi_domain = true;
         let www_root = routing.get( 'www-root' );
-        if ( domain.www_root.length > 0 ){
-          www_root = www_root + '/' + domain.www_root;
+        if ( domain_config.www_root.length > 0 ){
+          www_root = www_root + '/' + domain_config.www_root;
         }
         ServerResponse.www_root = www_root;
 
-        if ( domain.redirect_to_https && ! secure ) {
-          process.stdout.write( `redirect -> '${ request_host }' => has been sent.\n` );
+        if( redirect_to.length > 0 && domain_config.redirect_to_https && ! secure ){
+          ServerResponse.redirect = true;
+          ServerResponse.redirect_to = `https://${ redirect_to[ 0 ] }${ url }`;
+        }
+
+        if( redirect_to.length > 0 && ! domain_config.redirect_to_https && ! secure ){
+          ServerResponse.redirect = true;
+          ServerResponse.redirect_to = `http://${ redirect_to[ 0 ] }${ url }`;
+        }
+
+        if( redirect_to.length === 0 && domain_config.redirect_to_https && ! secure ){
           ServerResponse.redirect = true;
           ServerResponse.redirect_to = `https://${ request_host }${ url }`;
         }
@@ -65,7 +90,7 @@ export async function listener<K extends RoutingIncomingMessage>( IncomingMessag
       }
     }
 
-    if ( routing.get( 'redirect' ).length > 0 && ! ServerResponse.listener_error && ! ServerResponse.multi_domain ) {
+    if ( routing.get( 'redirect' ).length > 0 && ! ServerResponse.listener_error && white_listed.length === 0 ) {
 
       const canonical = routing.get( 'redirect' );
       const redirect_to_https = routing.get( 'redirect-to-https' );
