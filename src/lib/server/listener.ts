@@ -71,14 +71,29 @@ export async function listener<K extends RoutingIncomingMessage>( IncomingMessag
         }
         ServerResponse.www_root = www_root;
 
-        if( redirect_to.length > 0 && domain_config.redirect_to_https && ! secure ){
-          ServerResponse.redirect = true;
-          ServerResponse.redirect_to = `https://${ redirect_to[ 0 ] }${ url }`;
-        }
+        if( redirect_to.length > 0 ){
+          const is_canonical = request_host === redirect_to[ 0 ];
+          if( is_canonical && domain_config.redirect_to_https && ! secure ){
+            process.stdout.write( `redirect -> '${ request_host }' => has been sent.\n` );
+            ServerResponse.redirect = true;
+            ServerResponse.redirect_to = `https://${ redirect_to[ 0 ] }${ url }`;
+          }
 
-        if( redirect_to.length > 0 && ! domain_config.redirect_to_https && ! secure ){
-          ServerResponse.redirect = true;
-          ServerResponse.redirect_to = `http://${ redirect_to[ 0 ] }${ url }`;
+          if( ! is_canonical && domain_config.redirect_to_https && ! secure ){
+            process.stdout.write( `redirect -> '${ request_host }' => has been sent.\n` );
+            ServerResponse.redirect = true;
+            ServerResponse.redirect_to = `https://${ redirect_to[ 0 ] }${ url }`;
+          }
+
+          if( ! is_canonical && ! domain_config.redirect_to_https && ! secure ){
+            ServerResponse.redirect = true;
+            ServerResponse.redirect_to = `http://${ redirect_to[ 0 ] }${ url }`;
+          }
+
+          if( ! is_canonical && secure ){
+            ServerResponse.redirect = true;
+            ServerResponse.redirect_to = `https://${ redirect_to[ 0 ] }${ url }`;
+          }
         }
 
         if( redirect_to.length === 0 && domain_config.redirect_to_https && ! secure ){
