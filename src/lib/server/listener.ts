@@ -37,52 +37,60 @@ export async function listener<K extends RoutingIncomingMessage>( IncomingMessag
   const url = IncomingMessage.url || '/';
   const multi_domain = routing.get( 'multi-domain' );
 
-  if( multi_domain.size > 0 && ! ServerResponse.listener_error ){
-    if ( multi_domain.has( request_host ) ){
-      ServerResponse.multi_domain = true;
-      const domain = multi_domain.get( request_host );
+  const is_acme_challenge =
+    url.startsWith( '/.well-known/acme-challenge/' ) &&
+    routing.get( 'acme-challenge' ) &&
+    ! secure;
 
-      ServerResponse.www_root = routing.get( 'www-root' ) + '/' + domain.www_root;
+  if ( ! is_acme_challenge ) {
 
-      if( domain.redirect_to_https && ! secure ){
-        process.stdout.write( `redirect -> '${request_host}' => has been sent.\n` );
+    if ( multi_domain.size > 0 && ! ServerResponse.listener_error ) {
+      if ( multi_domain.has( request_host ) ) {
+        ServerResponse.multi_domain = true;
+        const domain = multi_domain.get( request_host );
+
+        ServerResponse.www_root = routing.get( 'www-root' ) + '/' + domain.www_root;
+
+        if ( domain.redirect_to_https && ! secure ) {
+          process.stdout.write( `redirect -> '${ request_host }' => has been sent.\n` );
+          ServerResponse.redirect = true;
+          ServerResponse.redirect_to = `https://${ request_host }${ url }`;
+        }
+
+        redirect( ServerResponse );
+      }
+    }
+
+    if ( routing.get( 'redirect' ).length > 0 && ! ServerResponse.listener_error && ! ServerResponse.multi_domain ) {
+
+      const canonical = routing.get( 'redirect' );
+      const redirect_to_https = routing.get( 'redirect-to-https' );
+      const is_canonical = request_host === canonical;
+
+      if ( is_canonical && redirect_to_https && ! secure ) {
+        process.stdout.write( `redirect -> '${ request_host }' => has been sent.\n` );
         ServerResponse.redirect = true;
-        ServerResponse.redirect_to = `https://${request_host}${url}`;
+        ServerResponse.redirect_to = `https://${ canonical }${ url }`;
+      }
+
+      if ( ! is_canonical && redirect_to_https && ! secure ) {
+        process.stdout.write( `redirect -> '${ request_host }' => has been sent.\n` );
+        ServerResponse.redirect = true;
+        ServerResponse.redirect_to = `https://${ canonical }${ url }`;
+      }
+
+      if ( ! is_canonical && ! redirect_to_https && ! secure ) {
+        ServerResponse.redirect = true;
+        ServerResponse.redirect_to = `http://${ canonical }${ url }`;
+      }
+
+      if ( ! is_canonical && secure ) {
+        ServerResponse.redirect = true;
+        ServerResponse.redirect_to = `https://${ canonical }${ url }`;
       }
 
       redirect( ServerResponse );
     }
-  }
-
-  if( routing.get( 'redirect' ).length > 0 && ! ServerResponse.listener_error && ! ServerResponse.multi_domain ){
-
-    const canonical = routing.get( 'redirect' );
-    const redirect_to_https = routing.get( 'redirect-to-https' );
-    const is_canonical = request_host === canonical;
-
-    if( is_canonical && redirect_to_https && ! secure ){
-      process.stdout.write( `redirect -> '${request_host}' => has been sent.\n` );
-      ServerResponse.redirect = true;
-      ServerResponse.redirect_to = `https://${canonical}${url}`;
-    }
-
-    if( ! is_canonical && redirect_to_https && ! secure ){
-      process.stdout.write( `redirect -> '${request_host}' => has been sent.\n` );
-      ServerResponse.redirect = true;
-      ServerResponse.redirect_to = `https://${canonical}${url}`;
-    }
-
-    if ( ! is_canonical && ! redirect_to_https && ! secure ) {
-      ServerResponse.redirect = true;
-      ServerResponse.redirect_to = `http://${canonical}${url}`;
-    }
-
-    if ( ! is_canonical && secure ) {
-      ServerResponse.redirect = true;
-      ServerResponse.redirect_to = `https://${canonical}${url}`;
-    }
-
-    redirect( ServerResponse );
   }
 
   if( routing.get( 'served-by' ) ){

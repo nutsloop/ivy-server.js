@@ -2,6 +2,7 @@ import { command, flag } from '@nutsloop/ivy-input';
 
 import { command_call } from '../../../logic.js';
 import { spin_cluster_cb } from './cb.js';
+import { acme_challenge_cb } from './flag/acme-challenge/cb.js';
 import { address_cb } from './flag/address/cb.js';
 import { control_room_cb } from './flag/control-room/cb.js';
 import { cpus_cb } from './flag/cpus/cb.js';
@@ -137,6 +138,18 @@ export async function spin_cluster(){
     is_flag_of: [ 'spin', 'cluster' ],
     type: 'string',
     usage: spin_cluster_www_root_usage
+  } );
+
+  await flag( '--acme-challenge', {
+    alias: 'acme-challenge',
+    cb:{
+      fn: acme_challenge_cb,
+      type: 'sync'
+    },
+    description: 'tells the server to serve the ACME challenge files without follow multi-domain config or global redirect to https.',
+    is_flag_of: [ 'spin', 'cluster' ],
+    usage: 'ivy-server spin|cluster --acme-challenge',
+    void: true
   } );
 
   await flag( '--log', {

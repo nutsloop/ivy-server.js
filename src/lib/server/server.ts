@@ -13,7 +13,9 @@ extends_proto();
 export type CreateServerOptions =
   Map<'address' | 'exec' | 'redirect' | 'served-by' | 'www-root', string> &
   Map<'command', 'cluster' | 'spin'> &
-  Map<'control-room' |
+  Map<
+    'acme-challenge' |
+    'control-room' |
     'cut-user-agent' |
     'ease' |
     'ease-cluster' |

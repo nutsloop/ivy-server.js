@@ -31,6 +31,7 @@ export type Routing =
     'served-by-name' |
     'www-root', string> &
   Map<'cluster' |
+    'acme-challenge' |
     'control-room' |
     'cut-user-agent' |
     'ease' |
@@ -72,6 +73,7 @@ type PromiseRoute = ( this: RequestData, IncomingMessage: ServerTypeIncoming, Se
 export type Route = AsyncRoute | PromiseRoute | SyncRoute;
 
 export const routing: Routing = new Map();
+routing.set( 'acme-challenge', false );
 routing.set( 'log_worker', undefined );
 routing.set( 'hot-routes', false );
 routing.set( 'port', 3001 );
