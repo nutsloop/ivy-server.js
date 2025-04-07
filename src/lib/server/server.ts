@@ -15,6 +15,7 @@ export type CreateServerOptions =
   Map<'command', 'cluster' | 'spin'> &
   Map<
     'acme-challenge' |
+    'mute-client-error' |
     'control-room' |
     'cut-user-agent' |
     'ease' |
