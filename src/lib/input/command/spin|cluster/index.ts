@@ -16,6 +16,7 @@ import { log_color_cb } from './flag/log-color/cb.js';
 import { log_persistent_cb } from './flag/log-persistent/cb.js';
 import { log_cb } from './flag/log/cb.js';
 import { multi_domain_cb } from './flag/multi-domain/cb.js';
+import { mute_client_error_cb } from './flag/mute-client-error/cb.js';
 import { port_cb } from './flag/port/cb.js';
 import { redirect_to_https_cb } from './flag/redirect-to-https/cb.js';
 import { redirect_to_cb } from './flag/redirect-to/cb.js';
@@ -149,6 +150,18 @@ export async function spin_cluster(){
     description: 'tells the server to serve the ACME challenge files without follow multi-domain config or global redirect to https.',
     is_flag_of: [ 'spin', 'cluster' ],
     usage: 'ivy-server spin|cluster --acme-challenge',
+    void: true
+  } );
+
+  await flag( '--mute-client-error', {
+    alias: 'mute-client-error',
+    cb:{
+      fn: mute_client_error_cb,
+      type: 'sync'
+    },
+    description: 'it mutes the client error listener by only not printing the error to the console.',
+    is_flag_of: [ 'spin', 'cluster' ],
+    usage: 'ivy-server spin|cluster --mute-client-error',
     void: true
   } );
 
