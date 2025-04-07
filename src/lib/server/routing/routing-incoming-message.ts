@@ -70,7 +70,7 @@ export class RoutingIncomingMessage
   get(): URLSearchParams | undefined {
 
     try {
-      const urlSearchParams = new URL( this.url, 'http://ivy.run' ).searchParams;
+      const urlSearchParams = new URL( this.url, 'http://nutsloop.com' ).searchParams;
 
       return urlSearchParams.size === 0
         ? undefined
