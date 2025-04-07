@@ -6,6 +6,7 @@ import { inspect } from 'node:util';
 
 import { listen } from '../listen/listen.js';
 import { listener } from '../listener.js';
+import { routing } from '../routing.js';
 import { RoutingIncomingMessage } from '../routing/routing-incoming-message.js';
 import { RoutingServerResponse } from '../routing/routing-server-response.js';
 import { destructuring_certs_path } from './shared/destructuring_certs_path.js';
@@ -39,9 +40,14 @@ export async function https( port:number, address:string, certs_path: Map<'cert'
   } );
 
   https_server.on( 'clientError', ( error: Error & { code?: string }, socket: Socket ) => {
-    const ip = socket.remoteAddress ?? 'unknown';
-    process.stderr.write( `{ ${`HTTPS`.white().strong()}: ${ error.code.magenta().underline().strong() }, ${`error`.white().strong()}: ${error.message.strong() } }\n` );
-    process.stderr.write( `${ip.red().underline().strong()}\n` );
+
+    if ( routing.get( 'mute-client-error' ) ){
+      const ip = socket.remoteAddress ?? 'unknown';
+      process.stderr.write( `{ ${`HTTPS`.white().strong()}: ${ error.code.magenta().underline().strong() }, ` );
+      process.stderr.write( `${`error`.white().strong()}: ${error.message.underline().strong() }, ` );
+      process.stderr.write( `${`ip_address`.white().strong()}: ${ip.red().underline().strong()} }\n` );
+    }
+
   } );
 
   return https_server;
