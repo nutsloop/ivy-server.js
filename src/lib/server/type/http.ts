@@ -32,7 +32,7 @@ export async function http( port: number, address: string ): Promise<Server<
 
   http_server.on( 'clientError', ( error: Error & { code?: string }, socket: Socket ) => {
 
-    if ( routing.get( 'mute-client-error' ) ){
+    if ( ! routing.get( 'mute-client-error' ) ){
       const ip = socket.remoteAddress ?? 'unknown';
       process.stderr.write( `{ ${`HTTP`.white().strong()}: ${ error.code.magenta().underline().strong() }, ` );
       process.stderr.write( `${`error`.white().strong()}: ${error.message.underline().strong() }, ` );

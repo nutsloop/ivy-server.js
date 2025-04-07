@@ -41,7 +41,7 @@ export async function https( port:number, address:string, certs_path: Map<'cert'
 
   https_server.on( 'clientError', ( error: Error & { code?: string }, socket: Socket ) => {
 
-    if ( routing.get( 'mute-client-error' ) ){
+    if ( ! routing.get( 'mute-client-error' ) ){
       const ip = socket.remoteAddress ?? 'unknown';
       process.stderr.write( `{ ${`HTTPS`.white().strong()}: ${ error.code.magenta().underline().strong() }, ` );
       process.stderr.write( `${`error`.white().strong()}: ${error.message.underline().strong() }, ` );
