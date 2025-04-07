@@ -42,11 +42,6 @@ export class RoutingIncomingMessage
   constructor( ...args: ConstructorParameters<typeof IncomingMessage> ) {
     super( ...args );
 
-    this.socket.on( 'error', ( error ) => {
-      process.stderr.write( error.message );
-      cluster.worker?.disconnect();
-    } );
-
     this.#cluster_check();
   }
 
