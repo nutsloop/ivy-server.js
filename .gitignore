@@ -11,3 +11,4 @@ log
 !/src/**
 target
 Cargo.lock
+/docs/build/
