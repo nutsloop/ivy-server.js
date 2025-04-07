@@ -42,6 +42,7 @@ export type Routing =
     'log-all' |
     'log-color' |
     'log-persistent' |
+    'mute-client-error' |
     'redirect-to-https' |
     'routes-active' |
     'secure' |
@@ -74,6 +75,7 @@ export type Route = AsyncRoute | PromiseRoute | SyncRoute;
 
 export const routing: Routing = new Map();
 routing.set( 'acme-challenge', false );
+routing.set( 'mute-client-error', false );
 routing.set( 'log_worker', undefined );
 routing.set( 'hot-routes', false );
 routing.set( 'port', 3001 );
