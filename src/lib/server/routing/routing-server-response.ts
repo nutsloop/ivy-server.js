@@ -83,17 +83,6 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
     }
   }
 
-  #log_all_extname(): string{
-
-    if( this.incoming.has ( 'url' ) ){
-      return path.extname( this.incoming.get( 'url' ) );
-    }
-
-    this.incoming.set( 'url', '/unknown' );
-
-    return '';
-  }
-
   #log_color( message: string, color: string, decoration: boolean|string = false ): string{
 
     if( ! routing.get( 'log-color' ) ){
@@ -166,8 +155,6 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
      * - date
      * - POST|PUT|PATCH|DELETE|GET data if any
      */
-    // !string !string(0)(117)  /unknown 400 !string      !string     !string  ⚷ 859 ⟳ (0)[4029551] !string                  0.1781ms !string
-    // 3754cd19 GET   (67)(276) /        301 91.4.175.223 89.168.29.7 http/1.0 ⚷ 389 ⟳ (1)[4029550] Agent/Unknown no-referer 0.5329ms 2025-03-28T04:38:35.991Z
     const message: string[] = [
       /*not set*/this.#log_color( this.incoming.get( 'id' ), 'b_white', 'bg_black' ),
       /*partially set*/method_section,
@@ -192,6 +179,22 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
         : <string>this.#log_data_request()
     ];
 
+    if ( this.incoming.has( 'data-error' ) && this.incoming.get( 'data-error' ).length > 0 ) {
+      message.push( `${this.incoming.get( 'data-error' )}` );
+    }
+
+    if( this.incoming.has( 'error' ) && this.incoming.get( 'error' ).length > 0 ){
+      message.push( `${this.incoming.get( 'error' ).join( ', ' )}` );
+    }
+
+    if( ! routing.get( 'cluster' ) ){
+      routing.get( 'log_worker' ).send( { log_worker: true, counter: this.#counter.length, worker_id: this.wrk, message: message } );
+    }
+    else {
+      process.send( { log_worker: true, counter: this.#counter.length, worker_id: this.wrk, message: message } );
+    }
+
+    // if the log persistent is active send it to the worker.
     if( routing.get( 'log-persistent' ) ){
       process.send( { 'log': message } );
     }
@@ -199,27 +202,6 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
     // if the control room is active, send the log to the control room.
     if( routing.get( 'control-room' ) ){
       process.send( { 'control-room': message.join( '|' ) } );
-    }
-
-    // TODO: fixing with the wrk for the log to stdout.
-    //logging the message to the console.
-    //process.stdout.write( `${ message.join( ' ' ) }` );
-
-    // TODO: including the error messages into the message itself
-    if ( this.incoming.has( 'data-error' ) && this.incoming.get( 'data-error' ).length > 0 ) {
-      process.stderr.write( `\n${this.incoming.get( 'data-error' )}\n` );
-    }
-    // TODO: including the error messages into the message itself
-    if ( this.incoming.has( 'error' ) && this.incoming.get( 'error' ).length > 0 ) {
-      process.stderr.write( `\n${this.incoming.get( 'error' ).join( ', ' )}\n` );
-    }
-
-    //TODO: sending anyway to the wrk log
-    if( ! routing.get( 'cluster' ) ){
-      routing.get( 'log_worker' ).send( { log_worker: true, counter: this.#counter.length, worker_id: this.wrk, message: message } );
-    }
-    else {
-      process.send( { log_worker: true, counter: this.#counter.length, worker_id: this.wrk, message: message } );
     }
 
   }
@@ -328,19 +310,8 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
     if ( this.log ) {
 
       this.#counter.push( 1 );
-
-      const file_extension = this.#log_all_extname();
-
       this.bytesWritten = this.bytesWritten > 0 ? this.bytesWritten : this.socket.bytesWritten;
-
-      if ( routing.get( 'log-all' ) ) {
-
-        this.#log_data().catch( error => process.stderr.write( `${ error }\n` ) );
-      }
-      else if ( file_extension === '.html' || file_extension.length === 0 ) {
-
-        this.#log_data().catch( error => process.stderr.write( `${ error }\n` ) );
-      }
+      this.#log_data().catch( error => process.stderr.write( `${ error }\n` ) );
     }
 
     return this;
