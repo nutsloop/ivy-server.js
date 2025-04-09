@@ -31,8 +31,8 @@ const _data_object = {
 const counter: 1[] = [];
 process.on( 'message', ( data: { log_wrk:boolean, counter: number, worker_id: number, message: string[]} ) => {
   counter.push( 1 );
-  process.stdout.write( `${data.message.join( ' ' )}` );
   if( data.worker_id !== 0 ) {
-    process.stdout.write( `(${ data.worker_id })(${ data.counter.toString() })[${ counter.length.toString() }]\n` );
+    data.message.push( `(${ data.worker_id })(${ data.counter.toString() })[${ counter.length.toString() }]` );
   }
+  process.stdout.write( `${data.message.join( ' ' )}\n` );
 } );
