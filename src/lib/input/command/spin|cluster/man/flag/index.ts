@@ -13,9 +13,6 @@ export const spin_cluster_www_root_usage = 'ivy-server spin|cluster --www-root=[
 export const spin_cluster_log_description = `Log the requests`;
 export const spin_cluster_log_usage = 'ivy-server spin|cluster --log';
 
-export const spin_cluster_log_all_description = `Log all the requested files, useful for debugging`;
-export const spin_cluster_log_all_usage = 'ivy-server spin|cluster --log-all';
-
 export const spin_cluster_log_color_description = `Color the log, it depend on the flag --log to be set`;
 export const spin_cluster_log_color_usage = 'ivy-server spin|cluster --log-color --log';
 

@@ -11,7 +11,6 @@ import { exec_cb } from './flag/exec/cb.js';
 import { hot_routes_cb } from './flag/hot-routes/cb.js';
 import { https_cb } from './flag/https/cb.js';
 import { live_reload_cb } from './flag/live-reload/cb.js';
-import { log_all_cb } from './flag/log-all/cb.js';
 import { log_color_cb } from './flag/log-color/cb.js';
 import { log_persistent_cb } from './flag/log-persistent/cb.js';
 import { log_cb } from './flag/log/cb.js';
@@ -43,8 +42,6 @@ import {
   spin_cluster_https_usage,
   spin_cluster_live_reload_description,
   spin_cluster_live_reload_usage,
-  spin_cluster_log_all_description,
-  spin_cluster_log_all_usage,
   spin_cluster_log_color_description,
   spin_cluster_log_color_usage,
   spin_cluster_log_description,
@@ -187,19 +184,6 @@ export async function spin_cluster(){
     description: spin_cluster_log_color_description,
     is_flag_of: [ 'spin', 'cluster' ],
     usage: spin_cluster_log_color_usage,
-    void: true
-  } );
-
-  await flag( '--log-all', {
-    alias: 'log-all',
-    cb: {
-      fn: log_all_cb,
-      type: 'sync'
-    },
-    description: spin_cluster_log_all_description,
-    has_conflict: [ '--log' ],
-    is_flag_of: [ 'spin', 'cluster' ],
-    usage: spin_cluster_log_all_usage,
     void: true
   } );
 
