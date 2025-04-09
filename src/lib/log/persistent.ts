@@ -82,8 +82,8 @@ function get_random_worker( workers_length: number ): number {
     return 0;
   }
 
-  const minCeiled = Math.ceil( 0 );
-  const maxFloored = Math.floor( workers_length - 1 );
+  const min_ceiled = Math.ceil( 0 );
+  const max_floored = Math.floor( workers_length - 1 );
 
-  return Math.floor( Math.random() * ( maxFloored - minCeiled + 1 ) + minCeiled );
+  return Math.floor( Math.random() * ( max_floored - min_ceiled + 1 ) + min_ceiled );
 }
