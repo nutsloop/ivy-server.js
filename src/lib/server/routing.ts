@@ -86,7 +86,6 @@ routing.set( 'counter', [] );
 routing.set( 'control-room', false );
 routing.set( 'log', false );
 routing.set( 'log-color', false );
-routing.set( 'log-all', false );
 routing.set( 'log-persistent', false );
 routing.set( 'live-reload', false );
 routing.set( 'to-index-html', false );
