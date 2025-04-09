@@ -22,7 +22,6 @@ export type CreateServerOptions =
     'ease-cluster' |
     'hot-routes' |
     'log' |
-    'log-all' |
     'log-color' |
     'redirect-to-https' |
     'to-index-html', null> &
