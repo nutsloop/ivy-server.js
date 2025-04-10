@@ -1,0 +1,6 @@
+/* Make content area wider */
+@media screen and (min-width: 1024px) {
+  .content {
+    width: 100%;  /* You can go larger if you want */
+  }
+}
