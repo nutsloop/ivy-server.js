@@ -28,11 +28,10 @@
     "build": "./scripts/build.sh",
     "clean": "./scripts/clean.sh",
     "chmod.u+x-fix": "./scripts/chmod.u+x.sh",
-    "lint": "npx eslint",
-    "lint-fix": "npx eslint . --fix --ext .ts",
+    "elint": "npx eslint",
+    "elint-fix": "npx eslint --fix",
     "tsc-watch": "npx tsc-watch --onSuccess \"sh ./scripts/chmod.u+x.sh\"",
-    "update": "npx npm-check-updates -u",
-    "nodemon-run-example": "nodemon -w ./ ./example/server.js --ext .js"
+    "update": "npx npm-check-updates -u"
   },
   "dependencies": {
     "@nutsloop/ivy-ansi": "^1.0.0-alpha.3",
@@ -46,12 +45,12 @@
     "@eslint/js": "^9.24.0",
     "@types/node": "^22.14.0",
     "@types/ws": "^8.18.1",
-    "@typescript-eslint/eslint-plugin": "^8.29.0",
-    "@typescript-eslint/parser": "^8.29.0",
+    "@typescript-eslint/eslint-plugin": "^8.29.1",
+    "@typescript-eslint/parser": "^8.29.1",
     "eslint": "^9.24.0",
     "eslint-plugin-perfectionist": "^4.11.0",
     "nodemon": "^3.1.9",
-    "npm-check-updates": "^17.1.16",
+    "npm-check-updates": "^17.1.18",
     "tsc-watch": "^6.2.1",
     "typescript": "^5.8.3"
   },
