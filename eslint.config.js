@@ -4,10 +4,12 @@ import perfectionistPlugin from 'eslint-plugin-perfectionist';
 
 export default [
   {
+    ignores: ['**/*.js', '**/*.cjs', '**/*.mjs', 'types/**/*', 'docs/**/*', 'scripts/**/*'],
+  },
+  {
     files: ['**/*.ts', '**/*.tsx'],
-    ignores: ['*.js', 'types/**/*'],
     languageOptions: {
-      parser: tsParser, // Explicitly pass the parser object
+      parser: tsParser,
       ecmaVersion: 'latest',
       sourceType: 'module',
     },
