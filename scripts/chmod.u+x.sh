@@ -1,40 +1,41 @@
-chmod u+x "./bin/server.js"
-chmod u+x "./lib/control/thread/worker.js"
-chmod u+x "./lib/log/wrk.js"
-chmod u+x "./lib/log/thread/worker.js"
-chmod u+x "./bin/server.js"
-chmod u+x "./lib/socket/thread/worker.js"
+#chmod executable files
+missing_files=""
 
-# Check if controlRoomConfig.js exists
-if [ -f "./example/controlRoomConfig.js" ]; then
-    mv "./example/controlRoomConfig.js" "./controlRoomConfig.js"
+printf "\n\033[1;4;32m[+] starting chmod execution for executable files...\033[0m\n"
+
+if [ -f "./bin/server.js" ]; then
+  chmod u+x "./bin/server.js"
+else
+  missing_files="$missing_files ./bin/server.js"
 fi
 
-# Check if logConfig.js exists
-if [ -f "./example/logConfig.js" ]; then
-    mv "./example/logConfig.js" "./logConfig.js"
+if [ -f "./lib/control/thread/worker.js" ]; then
+  chmod u+x "./lib/control/thread/worker.js"
+else
+  missing_files="$missing_files ./lib/control/thread/worker.js"
 fi
 
-# Check if multiDomainConfig.js exists
-if [ -f "./example/multiDomainConfig.js" ]; then
-    mv "./example/multiDomainConfig.js" "./multiDomainConfig.js"
+if [ -f "./lib/log/wrk.js" ]; then
+  chmod u+x "./lib/log/wrk.js"
+else
+  missing_files="$missing_files ./lib/log/wrk.js"
 fi
 
-# Check if socketClient.js exists
-if [ -f "./example/socketClient.js" ]; then
-    mv "./example/socketClient.js" "./socketClient.js"
+if [ -f "./lib/log/thread/worker.js" ]; then
+  chmod u+x "./lib/log/thread/worker.js"
+else
+  missing_files="$missing_files ./lib/log/thread/worker.js"
 fi
 
-# Check if socketConfig.js exists
-if [ -f "./example/socketConfig.js" ]; then
-    mv "./example/socketConfig.js" "./socketConfig.js"
+if [ -f "./lib/socket/thread/worker.js" ]; then
+  chmod u+x "./lib/socket/thread/worker.js"
+else
+  missing_files="$missing_files ./lib/socket/thread/worker.js"
 fi
 
-# Check if directory public exists, if not, create it
-[ -d "./public" ] || mkdir "./public"
-
-# Check if directory routes exists, if not, create it
-[ -d "./routes" ] || mkdir "./routes"
-
-# Check if directory vroutes exists, if not, create it
-[ -d "./vroutes" ] || mkdir "./vroutes"
+if [ -n "$missing_files" ]; then
+  printf "\033[1;4;31m[+] error: Missing files:%s\033[0m\n" "$missing_files"
+  exit 1
+else
+  printf "\033[1;4;32m[+] chmod execution completed successfully.\033[0m\n"
+fi
