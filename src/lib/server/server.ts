@@ -30,6 +30,37 @@ export type CreateServerOptions =
   Map<'log-persistent' | 'socket', null | number> &
   Map<'routes', Map<string, string> | null | string>;
 
+type IteratorArgv = IterableIterator<
+  [
+      | 'address'
+      | 'exec'
+      | 'redirect'
+      | 'served-by'
+      | 'www-root'
+      | 'command'
+      | 'acme-challenge'
+      | 'mute-client-error'
+      | 'control-room'
+      | 'cut-user-agent'
+      | 'ease'
+      | 'ease-cluster'
+      | 'hot-routes'
+      | 'log'
+      | 'log-color'
+      | 'redirect-to-https'
+      | 'to-index-html'
+      | 'cpus'
+      | 'port'
+      | 'https'
+      | 'live-reload'
+      | 'multi-domain'
+      | 'vroutes'
+      | 'log-persistent'
+      | 'socket'
+      | 'routes',
+      null | number | string | Map<string, string>
+  ]
+>;
 /**
  * The Ivy-Server interface.
  */
@@ -49,60 +80,48 @@ class BaseServer implements IServer{
   #argv: string[] = [];
   constructor() {/**/}
 
-  #null_or_option( value: null|number|string ): string{
-    return value === null ? '' : `=${value}`;
-  }
-
   /**
    * Creates a server with the given options.
    */
   create( options?: CreateServerOptions ): void {
 
-    let argv: null|string[] = null;
+    if( options && ! ( options instanceof Map ) ){
+      throw new TypeError( 'options must be a Map instance' );
+    }
 
-    if( options instanceof Map && options.size > 0 ) {
+    if( ! options || options.size === 0 ){
+      this.#argv.push( 'spin' );
 
-      argv = [];
+      return;
+    }
 
-      if( options.has( 'ease' ) ){
-        argv.push( '--ease' );
-        options.delete( 'ease' );
-      }
-
-      if( options.has( 'ease-cluster' ) ){
-        argv.push( '--ease-cluster' );
-        options.delete( 'ease-cluster' );
-      }
-
-      argv.push( options?.get( 'command' ) || 'spin' );
-      options.delete( 'command' );
-
-      if( options.size > 0 ){
-
-        for( const [ key, value ] of options as Map<string, Map<string, string> | string> ) {
-
-          if( value instanceof Map ){
-
-            let kvp = '!';
-            for( const [ k, v ] of value ){
-              kvp += `${k}:${v}|`;
-            }
-
-            if( kvp.endsWith( '|' ) ){
-              kvp = kvp.slice( 0, - 1 );
-            }
-
-            argv.push( `--${key}=${kvp}` );
-          }
-          else{
-            argv.push( `--${key}${this.#null_or_option( value )}` );
-          }
-
-        }
+    const global_flags: string[] = [];
+    for( const flag of [ 'ease', 'ease-cluster' ] as const ){
+      if( options.has( flag ) ){
+        global_flags.push( `--${flag}` );
+        options.delete( flag );
       }
     }
 
-    this.argv = argv ?? [ 'spin' ];
+    const command = options.get( 'command' ) || 'spin';
+    options.delete( 'command' );
+
+    const args: string[] = Array.from( options.entries() as IteratorArgv ).map( ( [ key, value ] ) => {
+
+      if( value === null ) {
+        return `--${key}`;
+      }
+
+      if( value instanceof Map ){
+        const kvp = Array.from( value ).map( ( [ k, v ] ) => `${k}:${v}` ).join( '|' );
+
+        return `--${key}=!${kvp}`;
+      }
+
+      return `--${key}=${value}`;
+    } );
+
+    this.#argv.push( ...global_flags, command, ...args );
   }
 
   /**
@@ -128,7 +147,10 @@ class BaseServer implements IServer{
 
   async start(): Promise<void> {
 
-    await entry_point( this.argv ).catch( console.error );
+    await entry_point( this.#argv ).catch( ( error ) => {
+      console.error( '[server] fatal error:', error );
+      process.exit( 1 );
+    } );
   }
 
   async virtual_routes( path: string | string[] ): Promise<void>{
@@ -166,16 +188,6 @@ class BaseServer implements IServer{
         }
       }
     } );
-  }
-
-  set argv( argv: string[] ){
-
-    this.#argv.push( ...argv );
-  }
-
-  get argv(): string[]{
-
-    return this.#argv;
   }
 }
 
