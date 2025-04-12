@@ -21,6 +21,9 @@ export const logic: CLILogic = async ( parsed_argv: ParsedArgv ): Promise<void> 
     .catch( console.error );
 };
 
+/**
+ * entry point of the ivy-server cli.
+ */
 export async function entry_point( argv: string[] = undefined ): Promise<void> {
 
   const global_flag_declaration = new Map();
