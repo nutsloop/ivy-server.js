@@ -147,7 +147,7 @@ class BaseServer implements IServer{
 
   async start(): Promise<void> {
 
-    await entry_point( this.#argv ).catch( ( error ) => {
+    await entry_point( this.#argv, true ).catch( ( error ) => {
       console.error( '[server] fatal error:', error );
       process.exit( 1 );
     } );
