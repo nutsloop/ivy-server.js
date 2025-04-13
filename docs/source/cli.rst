@@ -149,6 +149,16 @@ These flags apply only when using the ``cluster`` command.
      - string
      - Path to entry file to execute in cluster.
 
+.. _--exec:
+
+--exec Flag
+-----------
+
+The ``--exec`` flag allows you to specify a path to a JavaScript file that will be executed by each worker process in a cluster environment.
+
+This flag is only available when using the ``cluster`` command and is intended for programmatic or custom logic extensions.
+
+Typically, you use ``--exec`` when you need your own server startup logic.
 
 Auxiliary Commands
 ==================
