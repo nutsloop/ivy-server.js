@@ -7,11 +7,17 @@ import { definition } from './input/definition.js';
 extends_proto();
 
 export const command_call: Set<string> = new Set();
+const use_interface: Set<boolean> = new Set();
 
 /**
  * entry point of the server CLI.
  */
 export const logic: CLILogic = async ( parsed_argv: ParsedArgv ): Promise<void> => {
+
+  if( use_interface.has( false ) && parsed_argv.get( 'flag' ).has( '--exec' ) ){
+    throw SyntaxError( '--exec flag is available only when using ivy-server programmatically.\n' +
+      'See: https://ivy-server.nutsloop.com/cli.html#exec-flag' );
+  }
 
   // necessary to switch between spin and cluster commands.
   command_call.add( parsed_argv.get( 'command' ).keys().next().value );
@@ -24,7 +30,9 @@ export const logic: CLILogic = async ( parsed_argv: ParsedArgv ): Promise<void> 
 /**
  * entry point of the ivy-server cli.
  */
-export async function entry_point( argv: string[] = undefined ): Promise<void> {
+export async function entry_point( argv: string[] = undefined, use_interface_switch: boolean = false ): Promise<void> {
+
+  use_interface_switch === true ? use_interface.add( true ) : use_interface.add( false );
 
   const global_flag_declaration = new Map();
   global_flag_declaration.set( 'has_global', true );
