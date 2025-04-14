@@ -12,6 +12,9 @@ import { socket } from '../../../socket/socket.js';
 const path = new Path();
 const killed_by_us = new Set<number>();
 
+type live_reload_config = Map<'host', string> &
+  Map<'port', number>;
+
 type SpinClusterData =
   CallBackArgvData<'address' | 'exec', string > &
   CallBackArgvData<'control-room', boolean > &
@@ -20,10 +23,12 @@ type SpinClusterData =
     'port' |
     'socket', number > &
   CallBackArgvData<'http2' | 'https',
-    Map<'cert' | 'dhparam' | 'key', string> | null >;
+    Map<'cert' | 'dhparam' | 'key', string> | null > &
+  CallBackArgvData<'live-reload', live_reload_config >;
 
 const server_pid = [];
 const log_pid = [];
+const sse_pid = [];
 
 export const spin_cluster_cb: CallBackAsync = async ( data: SpinClusterData, spin: boolean ): Promise<void> => {
 
@@ -32,6 +37,7 @@ export const spin_cluster_cb: CallBackAsync = async ( data: SpinClusterData, spi
   }
 
   await spawn_log_wrk( routing.get( 'log' ) );
+  await spawn_live_reload_wrk( routing.get( 'live-reload' ), data.get( 'live-reload' ) );
   await spawn_control_room( data.has( 'control-room' ) );
   await spawn_log_persistent( data.has( 'log-persistent' ), data.get( 'log-persistent' ) );
   await spawn_socket( data.has( 'socket' ), data.get( 'socket' ) );
@@ -145,6 +151,62 @@ async function server( data: SpinClusterData ): Promise<void> {
 
     await ( await import( '../../../server/type/http.js' ) )
       .http( port, address );
+  }
+}
+
+async function spawn_live_reload_wrk( invoked_flag: boolean, sse_config_data: live_reload_config ): Promise<void> {
+
+  const sse_config = new Map();
+  sse_config.set( 'cors_port', routing.get( 'port' ) );
+
+  if( sse_config_data === null ){
+    sse_config.set( 'host', routing.get( 'address' ) );
+    sse_config.set( 'port', 6553 );
+  }
+
+  if( sse_config_data !== null ){
+
+    if( sse_config_data.has( 'host' ) ){
+      sse_config.set( 'host', sse_config_data.get( 'host' ) );
+    }
+    else{
+      sse_config.set( 'host', routing.get( 'address' ) );
+    }
+    if( sse_config_data.has( 'port' ) ){
+      sse_config.set( 'port', sse_config_data.get( 'port' ) );
+    }
+    else{
+      sse_config.set( 'port', 6553 );
+    }
+  }
+
+  if( invoked_flag && cluster.isPrimary ){
+
+    const sse_wrk = [
+      path.dirname( new URL( import.meta.url ).pathname ),
+      '..',
+      '..',
+      '..',
+      'live-reload',
+      'wrk.js'
+    ];
+
+    cluster.setupPrimary( {
+      exec: path.resolve( ...sse_wrk ),
+      args: [ ... sse_config ].flat()
+    } );
+
+    sse_pid.push( cluster.fork().process.pid );
+
+    cluster.on( 'fork', ( Worker ) => {
+
+      if( sse_pid.includes( Worker.process.pid ) ){
+        process.stdout.write( ` ${'|'.red()}${'   sse'.red().underline()}(${ Worker.id }) ${Worker.process.pid}` );
+        process.stdout.write( ` listening on ${ sse_config.get( 'host' ).magenta() }:` );
+        process.stdout.write( `${ sse_config.get( 'port' ).toFixed().yellow() }\n` );
+      }
+    } );
+
   }
 }
 
