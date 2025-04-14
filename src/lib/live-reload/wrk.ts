@@ -23,8 +23,6 @@ for ( let i = 0; i < argv.length; i += 2 ) {
   sse_conf.set( key, value );
 }
 
-console.log( sse_conf );
-
 const host: string = sse_conf.get( 'host' ) as string;
 const port: number = sse_conf.get( 'port' ) as number;
 const cors_address = `http://${sse_conf.get( 'host' )}:${sse_conf.get( 'cors_port' )}`;
