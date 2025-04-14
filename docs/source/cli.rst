@@ -153,6 +153,8 @@ These flags apply only when using the ``cluster`` command.
 
 --exec Flag
 -----------
+.. warning::
+   This flag is only available when using the programmatic API interface and will throw an error if used directly with the ``ivy-server`` CLI interface.
 
 The ``--exec`` flag allows you to specify a path to a JavaScript file that will be executed by each worker process in a cluster environment.
 
