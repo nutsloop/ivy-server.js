@@ -48,6 +48,9 @@ export async function https( port:number, address:string, certs_path: Map<'cert'
       process.stderr.write( `${`ip_address`.white().strong()}: ${ip.red().underline().strong()} }\n` );
     }
 
+    socket.end( 'HTTP/1.1 400 Bad Request\r\n\r\n' );
+    socket.destroy();
+
   } );
 
   return https_server;
