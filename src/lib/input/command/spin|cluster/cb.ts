@@ -156,31 +156,31 @@ async function server( data: SpinClusterData ): Promise<void> {
 
 async function spawn_live_reload_wrk( invoked_flag: boolean, sse_config_data: live_reload_config ): Promise<void> {
 
-  const sse_config = new Map();
-  sse_config.set( 'cors_port', routing.get( 'port' ) );
+  if( invoked_flag && cluster.isPrimary ){
 
-  if( sse_config_data === null ){
-    sse_config.set( 'host', routing.get( 'address' ) );
-    sse_config.set( 'port', 6553 );
-  }
+    const sse_config = new Map();
+    sse_config.set( 'cors_port', routing.get( 'port' ) );
 
-  if( sse_config_data !== null ){
-
-    if( sse_config_data.has( 'host' ) ){
-      sse_config.set( 'host', sse_config_data.get( 'host' ) );
-    }
-    else{
+    if( sse_config_data === null ){
       sse_config.set( 'host', routing.get( 'address' ) );
-    }
-    if( sse_config_data.has( 'port' ) ){
-      sse_config.set( 'port', sse_config_data.get( 'port' ) );
-    }
-    else{
       sse_config.set( 'port', 6553 );
     }
-  }
 
-  if( invoked_flag && cluster.isPrimary ){
+    if( sse_config_data !== null ){
+
+      if( sse_config_data.has( 'host' ) ){
+        sse_config.set( 'host', sse_config_data.get( 'host' ) );
+      }
+      else{
+        sse_config.set( 'host', routing.get( 'address' ) );
+      }
+      if( sse_config_data.has( 'port' ) ){
+        sse_config.set( 'port', sse_config_data.get( 'port' ) );
+      }
+      else{
+        sse_config.set( 'port', 6553 );
+      }
+    }
 
     const sse_wrk = [
       path.dirname( new URL( import.meta.url ).pathname ),
