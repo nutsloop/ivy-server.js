@@ -1,20 +1,26 @@
-# Minimal makefile for Sphinx documentation
-#
+# Minimal Makefile for Sphinx documentation with optional live-reload.js
 
-# You can set these variables from the command line, and also
-# from the environment for the first two.
 SPHINXOPTS    ?=
 SPHINXBUILD   ?= sphinx-build
 SOURCEDIR     = source
 BUILDDIR      = build
+STATICDIR     = $(SOURCEDIR)/_static
+JSFILE        = $(SOURCEDIR)/live-reload/live-reload.js
+STATICJS      = $(STATICDIR)/live-reload.js
 
-# Put it first so that "make" without argument is like "make help".
+.PHONY: help clean html
+
 help:
-	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS)
 
-.PHONY: help Makefile
+clean:
+	@echo "Cleaning build directory and removing live-reload.js..."
+	@rm -rf "$(BUILDDIR)"
+	@rm -f "$(STATICJS)"
 
-# Catch-all target: route all unknown targets to Sphinx using the new
-# "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
-%: Makefile
-	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+html: clean
+ifeq ($(LIVERELOAD),1)
+	@echo "Copying live-reload.js to _static..."
+	@cp "$(JSFILE)" "$(STATICJS)"
+endif
+	@$(SPHINXBUILD) -b html "$(SOURCEDIR)" "$(BUILDDIR)/html" $(SPHINXOPTS)

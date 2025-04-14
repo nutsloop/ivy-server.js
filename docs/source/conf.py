@@ -1,3 +1,4 @@
+import os
 # Configuration file for the Sphinx documentation builder.
 #
 # For the full list of built-in configuration values, see the documentation:
@@ -26,4 +27,8 @@ exclude_patterns = []
 html_theme = 'shibuya'
 html_static_path = ['_static']
 html_css_files = ['content.css']
-html_js_files = ['live-reload.js']
+
+html_js_files = []
+
+if os.environ.get('LIVERELOAD'):
+    html_js_files.append('live-reload.js')
