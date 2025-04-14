@@ -21,6 +21,12 @@ else
   missing_files="$missing_files ./lib/log/wrk.js"
 fi
 
+if [ -f "./lib/live-reload/wrk.js" ]; then
+  chmod u+x "./lib/live-reload/wrk.js"
+else
+  missing_files="$missing_files ./lib/live-reload/wrk.js"
+fi
+
 if [ -f "./lib/log/thread/worker.js" ]; then
   chmod u+x "./lib/log/thread/worker.js"
 else
