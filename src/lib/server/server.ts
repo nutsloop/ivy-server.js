@@ -65,25 +65,29 @@ type IteratorArgv = IterableIterator<
  * The Ivy-Server interface.
  */
 export interface IServer{
-  create( options?: CreateServerOptions ): void;
-  route( path: string, route: Route ): Promise<void>;
-  start(): Promise<void>;
-  virtual_routes( path: string | string[] ): Promise<void>;
+  create( options?: CreateServerOptions ): IServer;
+  route( path: string, route: Route ): IServer;
+  start(): void;
+  virtual_routes( path: string | string[] ): IServer;
 }
 
-/**
- * Represents a base server implementation.
- * @implements {IServer}
- */
+
 class BaseServer implements IServer{
 
   #argv: string[] = [];
+  #server_running: boolean = false;
+
   constructor() {/**/}
 
-  /**
-   * Creates a server with the given options.
-   */
-  create( options?: CreateServerOptions ): void {
+  #server_running_check(): void {
+    if( this.#server_running ){
+      throw new Error( 'Server is already running' );
+    }
+  }
+
+  create( options?: CreateServerOptions ): IServer {
+
+    this.#server_running_check();
 
     if( options && ! ( options instanceof Map ) ){
       throw new TypeError( 'options must be a Map instance' );
@@ -92,7 +96,7 @@ class BaseServer implements IServer{
     if( ! options || options.size === 0 ){
       this.#argv.push( 'spin' );
 
-      return;
+      return this;
     }
 
     const global_flags: string[] = [];
@@ -122,72 +126,72 @@ class BaseServer implements IServer{
     } );
 
     this.#argv.push( ...global_flags, command, ...args );
+
+    return this;
   }
 
-  /**
-   * Routes a path to a route.
-   */
-  async route( path: string, route: Route ): Promise<void> {
+  route( path: string, route: Route ): IServer {
 
-    return new Promise( ( resolve, _reject ) => {
+    this.#server_running_check();
 
-      const routes = routing.get( 'routes' );
-      if( routes.has( path ) ){
+    const routes = routing.get( 'routes' );
+    if( routes.has( path ) ){
 
-        process.stderr.write( `Route [${path.red()}] already exists\n` );
-        process.exit( 1 );
-      }
-      else{
+      process.stderr.write( `Route [${path.red()}] already exists\n` );
+      process.exit( 1 );
+    }
 
-        routes.set( path, route );
-        resolve();
-      }
-    } );
+    routes.set( path, route );
+
+    return this;
   }
 
-  async start(): Promise<void> {
+  start(): void {
 
-    await entry_point( this.#argv, true ).catch( ( error ) => {
+    this.#server_running = true;
+
+    entry_point( this.#argv, true ).catch( ( error ) => {
       console.error( '[server] fatal error:', error );
       process.exit( 1 );
     } );
   }
 
-  async virtual_routes( path: string | string[] ): Promise<void>{
+  virtual_routes( path: string | string[] ): IServer{
 
-    return new Promise( ( resolve, _reject ) => {
+    this.#server_running_check();
 
-      const virtual_routes = routing.get( 'virtual-routes' );
-      if( typeof path === 'string' ){
+    const virtual_routes = routing.get( 'virtual-routes' );
+    if( typeof path === 'string' ){
 
-        if( virtual_routes.includes( path ) ){
+      if( virtual_routes.includes( path ) ){
 
-          process.stderr.write( `Virtual route [${path.red()}] already exists\n` );
+        process.stderr.write( `Virtual route [${path.red()}] already exists\n` );
+        process.exit( 1 );
+      }
+      else{
+
+        virtual_routes.push( path );
+
+        return this;
+      }
+    }
+    else{
+
+      for ( const virtual_route of path ) {
+
+        if( virtual_routes.includes( virtual_route ) ){
+
+          process.stderr.write( `Virtual route [${virtual_route.red()}] already exists\n` );
           process.exit( 1 );
         }
         else{
 
-          virtual_routes.push( path );
-          resolve();
+          virtual_routes.push( virtual_route );
+
+          return this;
         }
       }
-      else{
-
-        for ( const virtual_route of path ) {
-
-          if( virtual_routes.includes( virtual_route ) ){
-
-            process.stderr.write( `Virtual route [${virtual_route.red()}] already exists\n` );
-            process.exit( 1 );
-          }
-          else{
-
-            virtual_routes.push( virtual_route );
-            resolve();
-          }
-        }
-      }
-    } );
+    }
   }
 }
 
