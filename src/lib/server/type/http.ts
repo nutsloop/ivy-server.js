@@ -30,7 +30,7 @@ export async function http( port: number, address: string ): Promise<Server<
     console.trace( inspect( error, true, Infinity, true ) );
   } );
 
-  http_server.on( 'clientError', ( error: Error & { code?: string }, socket: Socket ) => {
+  http_server.on( 'clientError', async ( error: Error & { code?: string }, socket: Socket ) => {
 
     if ( ! routing.get( 'mute-client-error' ) ){
       const ip = socket.remoteAddress ?? 'unknown';
@@ -38,7 +38,9 @@ export async function http( port: number, address: string ): Promise<Server<
       process.stderr.write( `${`error`.white().strong()}: ${error.message.underline().strong() }, ` );
       process.stderr.write( `${`ip_address`.white().strong()}: ${ip.red().underline().strong()} }\n` );
     }
+
     socket.write( 'HTTP/1.1 400 Bad Request\r\n\r\n' );
+
     socket.end( '\r\n' );
     socket.destroy();
 
