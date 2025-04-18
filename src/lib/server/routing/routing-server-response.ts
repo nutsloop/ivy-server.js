@@ -185,9 +185,20 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
     this.incoming.set( 'referer', this.req.headers.referer || 'no-referer' );
     this.incoming.set( 'date', new Date().toISOString() );
 
+    // experiment
+    let organic_request = '';
+    //@ts-expect-error - this is temporary
+    if( this.incoming.has( routing.get( 'plugins' )[ 0 ] ) ){
+      organic_request = this.#log_color( '☆', 'blue', 'strong' );
+    }
+
     let method_section = this.#log_color( this.incoming.get( 'method' ), 'red' );
     method_section += `(${ this.#log_color( this.bytesRead.toFixed(), 'green', 'strong' ) })`;
     method_section += `(${ this.#log_color( this.bytesWritten.toFixed(), 'red', 'strong' ) })`;
+
+    const request_headers = Object.keys( this.incoming.get( 'raw-headers' ) ).length > 0
+      ? `\n${inspect( this.incoming.get( 'raw-headers' ), { colors: true, depth: Infinity } )}`
+      : '';
 
     /**
      * log format:
@@ -208,6 +219,7 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
      * - response time
      * - date
      * - POST|PUT|PATCH|DELETE|GET data if any
+     * - request headers if active
      */
     const message: string[] = [
       this.#log_color( this.incoming.get( 'id' ), 'b_white', 'bg_black' ),
@@ -228,10 +240,11 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
       this.incoming.get( 'referer' ),
       `${ this.get_response_time().toFixed( 4 ) }ms`,
       this.#log_color( this.incoming.get( 'date' ), 'yellow' ),
+      organic_request,
       this.#log_data_request() === false
         ? ''
         : this.#log_data_request().toString(),
-      `\n${inspect( this.incoming.get( 'raw-headers' ), { colors: true, depth: Infinity } )}`
+      request_headers
     ];
 
     if ( this.incoming.has( 'data-error' ) && this.incoming.get( 'data-error' ).length > 0 ) {
