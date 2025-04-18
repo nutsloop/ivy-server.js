@@ -30,13 +30,13 @@ type RoutingRoute = Map<string, ImportedRoute | Route>;
 export class RoutingIncomingMessage
   extends IncomingMessage {
 
-  #url_internal: string;
-  #url_sanitized: string;
-  #url_search_params_internal: URLSearchParams | undefined;
+  #url_internal: string = '';
+  #url_sanitized: string = '';
+  #url_search_params_internal: URLSearchParams | void | undefined;
 
-  ip_address = undefined;
+  ip_address: string | string[] | undefined = undefined;
   post_data: Buffer = Buffer.alloc( 0 );
-  route_module: Route;
+  route_module: Route | undefined;
   routes: RoutingRoute = routing.get( 'routes' );
 
   constructor( ...args: ConstructorParameters<typeof IncomingMessage> ) {
@@ -67,23 +67,25 @@ export class RoutingIncomingMessage
    * @returns {URLSearchParams | undefined} URLSearchParams object for the current URL.
    * Returns undefined if no parameters are found.
    */
-  get(): URLSearchParams | undefined {
+  get(): URLSearchParams | void | undefined {
 
-    try {
-      const urlSearchParams = new URL( this.url, 'http://nutsloop.com' ).searchParams;
+    if ( this.url ) {
+      try {
+        const urlSearchParams = new URL( this.url, 'http://nutsloop.com' ).searchParams;
 
-      return urlSearchParams.size === 0
-        ? undefined
-        : urlSearchParams;
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    catch ( error ) {
+        return urlSearchParams.size === 0
+          ? undefined
+          : urlSearchParams;
+      }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      catch ( error ) {
 
-      return undefined;
+        return undefined;
+      }
     }
   }
 
-  async #route(): Promise< ( ImportedRoute|Route )| boolean> {
+  async #route(): Promise< ( ImportedRoute|Route )| boolean | undefined> {
 
     if ( this.routes.get( this.#url_sanitized ) ) {
 
@@ -95,7 +97,11 @@ export class RoutingIncomingMessage
 
   #strip_hash_from_url(): string {
 
-    const url_object = new URL( this.url, 'http://ivy.run' );
+    if ( ! this.url ) {
+      return '';
+    }
+
+    const url_object = new URL( this.url, 'http://ivy-server.nutsloop.com' );
 
     return url_object.hash.length > 0
       ? url_object.href.replace( url_object.hash, '' )
@@ -103,7 +109,7 @@ export class RoutingIncomingMessage
 
   }
 
-  #strip_search_params_from_url( url: URLSearchParams | undefined ): string {
+  #strip_search_params_from_url( url: URLSearchParams | void | undefined ): string {
 
     if ( url !== undefined ) {
       return this.#url_internal.replace( `?${ url }`, '' );
@@ -123,7 +129,7 @@ export class RoutingIncomingMessage
    * todo - add support for DELETE
    */
 
-  async post(): Promise<Buffer> {
+  async post(): Promise<Buffer | undefined> {
 
     if ( this.method === 'POST' && this.readable ) {
 
@@ -153,7 +159,7 @@ export class RoutingIncomingMessage
 
     let module: ImportedRoute = potential_route as ImportedRoute;
 
-    if ( typeof potential_route === 'boolean' && potential_route === false ){
+    if ( typeof potential_route === 'boolean' && ! potential_route ){
 
       const uuid = `?${ randomUUID().slice( 0, 6 ) }`;
       const hot_route_reload = ! routing.get( 'hot-routes' )
@@ -174,30 +180,36 @@ export class RoutingIncomingMessage
     if ( module_exports.length === 0 ) {
       return;
     }
-    else if ( this.#url_search_params_internal?.size > 0 && module_exports.includes( 'get' ) && this.method === 'GET' ) {
 
-      this.route_module = module.get as Route;
-    }
-    else if ( module_exports.includes( 'post' ) && this.method === 'POST' ) {
+    if( this.#url_search_params_internal && this.method ) {
 
-      this.route_module = module.post as Route;
-    }
-    else if ( module_exports.includes( this.method ) && this.method !== 'GET' && this.method !== 'POST' ) {
+      if ( this.#url_search_params_internal.size > 0 && module_exports.includes( 'get' ) && this.method === 'GET' ) {
 
-      this.route_module = module[ this.method ] as Route;
-    }
-    else {
+        this.route_module = module.get as Route;
+      }
+      else if ( module_exports.includes( 'post' ) && this.method === 'POST' ) {
 
-      this.route_module = module[ path.basename( this.#url_sanitized ) ] as Route;
+        this.route_module = module.post as Route;
+      }
+      else if ( module_exports.includes( this.method ) && this.method !== 'GET' && this.method !== 'POST' ) {
+
+        this.route_module = module[ this.method ] as Route;
+      }
+      else {
+
+        this.route_module = module[ path.basename( this.#url_sanitized ) ] as Route;
+      }
     }
   }
 
   set_ip_address(): void {
 
-    this.ip_address = this.headers[ 'x-forwarded-for' ] || this.socket.remoteAddress;
+    if ( this.ip_address ) {
+      this.ip_address = this.headers[ 'x-forwarded-for' ] || this.socket.remoteAddress;
+    }
   }
 
-  to_object( json: string, res: RoutingServerResponse< RoutingIncomingMessage > ): {}{
+  to_object( json: string, res: RoutingServerResponse< RoutingIncomingMessage > ): {} | void{
 
     try{
 
@@ -205,13 +217,19 @@ export class RoutingIncomingMessage
     }
     catch( error ){
 
-      process.stderr.write( error.message );
+      if ( error instanceof Error ) {
+        process.stderr.write( error.message + '\n' );
+      }
+      else {
+        process.stderr.write( 'Unknown error during JSON parse\n' );
+      }
+
       res.writeHead( 500 );
       res.end( 'internal server error' );
     }
   }
 
-  get url_search_params(): URLSearchParams | undefined {
+  get url_search_params(): URLSearchParams | void | undefined {
 
     return this.#url_search_params_internal;
   }
