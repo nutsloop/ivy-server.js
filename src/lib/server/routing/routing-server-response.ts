@@ -20,29 +20,31 @@ interface IVirtualRouteValidationSegments{
 type ServerIncomingMapKey =
   | 'data-error'
   | 'date'
-  | 'host'
-  | 'httpVersion'
+  | 'error'
   | 'id'
   | 'ip_address'
   | 'method'
-  | 'referer'
   | 'url'
+  | 'httpVersion'
+  | 'host'
   | 'user-agent'
-  | 'error'
+  | 'raw-headers'
+  | 'referer'
   | 'request';
 
 type ServerIncomingMap = {
   'data-error': string,
   'date': string,
-  'host': string,
-  'httpVersion': string,
+  'error': string[],
   'id': string,
   'ip_address': string,
   'method': string,
-  'referer': string,
   'url': string,
+  'httpVersion': string,
+  'host': string,
   'user-agent': string,
-  'error': string[],
+  'raw-headers': {},
+  'referer': string,
   'request': RequestData
 };
 
@@ -55,15 +57,16 @@ export class ServerIncomingData extends Map<ServerIncomingMapKey, ServerIncoming
     const entries: [ServerIncomingMapKey, ServerIncomingValue][] = [
       [ 'data-error', '' ],
       [ 'date', '' ],
-      [ 'host', '' ],
-      [ 'httpVersion', '' ],
+      [ 'error', [] ],
       [ 'id', '' ],
       [ 'ip_address', '' ],
       [ 'method', '' ],
-      [ 'referer', '' ],
       [ 'url', '' ],
+      [ 'httpVersion', '' ],
+      [ 'host', '' ],
       [ 'user-agent', '' ],
-      [ 'error', [] ],
+      [ 'raw-headers', {} ],
+      [ 'referer', '' ],
       [ 'request', new Map() as unknown as RequestData ] // placeholder cast
     ];
 
@@ -182,10 +185,9 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
     this.incoming.set( 'referer', this.req.headers.referer || 'no-referer' );
     this.incoming.set( 'date', new Date().toISOString() );
 
-    // checking the logging issue
-    /*not set*/let method_section = this.#log_color( this.incoming.get( 'method' ), 'red' );
-    /*set*/method_section += `(${ this.#log_color( this.bytesRead.toFixed(), 'green', 'strong' ) })`;
-    /*set*/method_section += `(${ this.#log_color( this.bytesWritten.toFixed(), 'red', 'strong' ) })`;
+    let method_section = this.#log_color( this.incoming.get( 'method' ), 'red' );
+    method_section += `(${ this.#log_color( this.bytesRead.toFixed(), 'green', 'strong' ) })`;
+    method_section += `(${ this.#log_color( this.bytesWritten.toFixed(), 'red', 'strong' ) })`;
 
     /**
      * log format:
@@ -208,27 +210,28 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
      * - POST|PUT|PATCH|DELETE|GET data if any
      */
     const message: string[] = [
-      /*not set*/this.#log_color( this.incoming.get( 'id' ), 'b_white', 'bg_black' ),
-      /*partially set*/method_section,
-      /*set*/this.incoming.get( 'url' ),
-      /*set*/this.#log_color( this.statusCode.toString(), 'magenta' ),
-      /*not set*/this.#log_color( this.incoming.get( 'ip_address' ), 'blue' ),
-      /*not set*/this.#log_color( this.incoming.get( 'host' ), 'blue', 'strong' ),
-      /*not set*/this.#log_color( this.incoming.get( 'httpVersion' ), 'red', 'underline' ),
-      /*set*/this.secure
+      this.#log_color( this.incoming.get( 'id' ), 'b_white', 'bg_black' ),
+      method_section,
+      this.incoming.get( 'url' ),
+      this.#log_color( this.statusCode.toString(), 'magenta' ),
+      this.#log_color( this.incoming.get( 'ip_address' ), 'blue' ),
+      this.#log_color( this.incoming.get( 'host' ), 'blue', 'strong' ),
+      this.#log_color( this.incoming.get( 'httpVersion' ), 'red', 'underline' ),
+      this.secure
         ? this.#log_color( '⚷', 'yellow', 'strong' )
         : this.#log_color( '⚷', 'red', 'strong' ),
-      /*set*/this.#log_color( this.#counter.length.toString(), 'cyan', 'strong' ),
-      /*set*/this.wrk === 0
+      this.#log_color( this.#counter.length.toString(), 'cyan', 'strong' ),
+      this.wrk === 0
         ? this.#log_color( `⟳ (0)[${ process.pid }]`, 'yellow' )
         : this.#log_color( `⟳ (${ this.wrk })[${ process.pid }]`, 'b_yellow' ),
-      /*set*/this.#log_color( this.incoming.get( 'user-agent' ), 'green' ),
-      /*not set but empty?*/this.incoming.get( 'referer' ),
-      /*set*/`${ this.get_response_time().toFixed( 4 ) }ms`,
-      /*not set*/this.#log_color( this.incoming.get( 'date' ), 'yellow' ),
-      /*set*/this.#log_data_request() === false
+      this.#log_color( this.incoming.get( 'user-agent' ), 'green' ),
+      this.incoming.get( 'referer' ),
+      `${ this.get_response_time().toFixed( 4 ) }ms`,
+      this.#log_color( this.incoming.get( 'date' ), 'yellow' ),
+      this.#log_data_request() === false
         ? ''
-        : <string>this.#log_data_request()
+        : this.#log_data_request().toString(),
+      `\n${inspect( this.incoming.get( 'raw-headers' ), { colors: true, depth: Infinity } )}`
     ];
 
     if ( this.incoming.has( 'data-error' ) && this.incoming.get( 'data-error' ).length > 0 ) {
