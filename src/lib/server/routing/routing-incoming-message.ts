@@ -204,7 +204,7 @@ export class RoutingIncomingMessage
 
   set_ip_address(): void {
 
-    if ( this.ip_address ) {
+    if ( ! this.ip_address ) {
       this.ip_address = this.headers[ 'x-forwarded-for' ] || this.socket.remoteAddress;
     }
   }

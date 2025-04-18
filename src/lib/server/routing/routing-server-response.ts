@@ -173,8 +173,8 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
     this.bytesRead = this.req.socket.bytesRead;
     this.incoming.set( 'data-error', '' );
     this.incoming.set( 'id', await generate_id() );
-    this.incoming.set( 'ip_address', this.req.ip_address as string );
-    this.incoming.set( 'method', this.req.method as string );
+    this.incoming.set( 'ip_address', this.req.ip_address || 'UNKNOWN IP' );
+    this.incoming.set( 'method', this.req.method || 'UNKNOWN METHOD' );
     this.incoming.set( 'url', this.req.url || 'unknown' );
     this.incoming.set( 'httpVersion', `http/${this.req.httpVersion}` );
     this.incoming.set( 'host', this.req.headers.host || <string>this.req.headers[ ':authority' ] || 'UNKNOWN HOST' );
