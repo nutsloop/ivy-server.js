@@ -6,6 +6,8 @@ public
 vroutes
 example
 log
+.tsbuildinfo
+*.js.map
 *.js
 !/eslint.config.js
 !/src/**
