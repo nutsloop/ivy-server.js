@@ -1,6 +1,7 @@
 import { command, flag } from '@nutsloop/ivy-input';
 
 import { command_call } from '../../../logic.js';
+import { routing } from '../../../server/routing.js';
 import { spin_cluster_cb } from './cb.js';
 import { acme_challenge_cb } from './flag/acme-challenge/cb.js';
 import { address_cb } from './flag/address/cb.js';
@@ -363,5 +364,37 @@ export async function spin_cluster(){
     is_flag_of: 'cluster',
     type: 'string',
     usage: cluster_exec_usage
+  } );
+
+  // experimentation
+  await flag( '--plugins', {
+    alias: 'plugins',
+    cb: {
+      fn: ( data: string[] ) => {
+        for ( const plugin of data ){
+          routing.get( 'plugins' ).push( plugin );
+        }
+      },
+      type: 'sync'
+    },
+    type: 'array',
+    usage: 'ivy-server spin|cluster --plugins=cookie-monster,request-limiter',
+    description: 'a comma separated list of @nutsloop/ivy-[plugin-name] packages. no need to prefix with `@nutsloop/ivy-`.\ninstall them first as dependencies of your project.',
+    is_flag_of: [ 'spin', 'cluster' ],
+  } );
+
+  await flag( '--log-request-headers', {
+    alias: 'log-request-header',
+    cb: {
+      fn: () => {
+        routing.set( 'log-request-headers', true );
+      },
+      type: 'sync'
+    },
+    void: true,
+    usage: 'ivy-server spin|cluster --log --log-request-headers',
+    description: 'log the request.headers',
+    depends_on: [ 'log' ],
+    is_flag_of: [ 'spin', 'cluster' ],
   } );
 }
