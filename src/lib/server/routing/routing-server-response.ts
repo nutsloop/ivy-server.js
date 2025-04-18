@@ -2,12 +2,13 @@ import { Path } from '@nutsloop/ivy-cross-path';
 import cluster from 'node:cluster';
 import { readFile } from 'node:fs/promises';
 import { ServerResponse } from 'node:http';
+import { performance } from 'node:perf_hooks';
 import { inspect } from 'node:util';
 
 import type { RoutingIncomingMessage } from './routing-incoming-message.js';
 
 import { CONTENT_TYPE, type ContentTypeFileExt } from '../response/content-type.js';
-import { generate_id, type RequestData, type Route, routing } from '../routing.js';
+import { generate_id, type RequestData, type Route, routing, } from '../routing.js';
 
 const path = new Path();
 
@@ -16,22 +17,65 @@ interface IVirtualRouteValidationSegments{
   virtual_segments: string[]
 }
 
-type IncomingNotData =
-  'data-error' |
-  'date' |
-  'host' |
-  'httpVersion' |
-  'id' |
-  'ip_address' |
-  'method' |
-  'referer' |
-  'url' |
-  'user-agent';
+type ServerIncomingMapKey =
+  | 'data-error'
+  | 'date'
+  | 'host'
+  | 'httpVersion'
+  | 'id'
+  | 'ip_address'
+  | 'method'
+  | 'referer'
+  | 'url'
+  | 'user-agent'
+  | 'error'
+  | 'request';
 
-type ServerResponseIncoming =
-  Map<'error', string[]> &
-  Map<'request', RequestData> &
-  Map<IncomingNotData, string>;
+type ServerIncomingMap = {
+  'data-error': string,
+  'date': string,
+  'host': string,
+  'httpVersion': string,
+  'id': string,
+  'ip_address': string,
+  'method': string,
+  'referer': string,
+  'url': string,
+  'user-agent': string,
+  'error': string[],
+  'request': RequestData
+};
+
+type ServerIncomingValue = ServerIncomingMap[ServerIncomingMapKey];
+
+export class ServerIncomingData extends Map<ServerIncomingMapKey, ServerIncomingValue> {
+  constructor() {
+    super();
+
+    const entries: [ServerIncomingMapKey, ServerIncomingValue][] = [
+      [ 'data-error', '' ],
+      [ 'date', '' ],
+      [ 'host', '' ],
+      [ 'httpVersion', '' ],
+      [ 'id', '' ],
+      [ 'ip_address', '' ],
+      [ 'method', '' ],
+      [ 'referer', '' ],
+      [ 'url', '' ],
+      [ 'user-agent', '' ],
+      [ 'error', [] ],
+      [ 'request', new Map() as unknown as RequestData ] // placeholder cast
+    ];
+
+    for ( const [ key, value ] of entries ) {
+      this.set( key, value );
+    }
+  }
+
+  override get<K extends ServerIncomingMapKey>( key: K ): ServerIncomingMap[K] {
+    return super.get( key )! as ServerIncomingMap[K];
+  }
+}
 
 /****************************************************************************************
  * Represents the routing functionality for HTTP & HTTPS server responses and requests. *
@@ -50,9 +94,9 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
   #counter: 1[] = routing.get( 'counter' );
   #isRoute: boolean = false;
   #response_time: number = performance.now();
-  #route: Route;
+  #route: Route | undefined;
   #wrk: 0 | number = 0;
-  incoming: ServerResponseIncoming = new Map();
+  incoming = new ServerIncomingData();
   listener_error = false;
   redirect: boolean = false;
   redirect_to: string = '';
@@ -83,14 +127,13 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
     }
   }
 
-  #log_color( message: string, color: string, decoration: boolean|string = false ): string{
+  #log_color( message: string | undefined, color: string, decoration: boolean|string = false ): string{
 
     if( ! routing.get( 'log-color' ) ){
 
       if( typeof message !== 'string' ){
         process.stderr.write( 'Error: log-color is false but the message is not a string.\n' );
         process.stderr.write( `Message: ${ inspect( message, { colors: false, depth: Infinity } ) }\n` );
-        //process.stderr.write( `RoutingServerResponse: ${ inspect( this, { colors: routing.get( 'log-color' ), depth: Infinity } ) }\n` );
       }
 
       return typeof message !== 'string' ? '!string' : message;
@@ -98,20 +141,29 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
 
     if( typeof message !== 'string' ){
 
-      if( typeof message !== 'string' ){
-        process.stderr.write( 'Error: log-color is true but the message is not a string.\n' );
-        process.stderr.write( `Message: ${ inspect( message, { colors: true, depth: Infinity } ) }\n` );
-        //process.stderr.write( `RoutingServerResponse: ${ inspect( this, { colors: routing.get( 'log-color' ), depth: Infinity } ) }\n` );
-      }
+      process.stderr.write( 'Error: log-color is true but the message is not a string.\n' );
+      process.stderr.write( `Message: ${ inspect( message, { colors: true, depth: Infinity } ) }\n` );
 
       return '!string'.red();
     }
 
-    if( typeof decoration === 'string' ){
-      return message[ color ]()[ decoration ]();
+    // Using @nutsloop/ivy-ansi, which extends String.prototype via `extends_proto()`.
+    // This enhancement is initialized once in ./src/lib/logic.ts.
+    // It allows calling dynamic color and decoration methods (e.g., .red(), .strong()) directly on any string.
+    // We use `any` here because TypeScript cannot statically verify dynamic runtime extensions on string,
+    // and these style methods are not part of the native String interface.
+    let styled_message = '';
+    if ( typeof ( message as any )[ color ] === 'function' ) {
+      const colored = ( message as any )[ color ]();
+
+      if ( typeof decoration === 'string' && typeof colored[ decoration ] === 'function' ) {
+        styled_message = colored[ decoration ]();
+      }
+
+      styled_message = colored;
     }
 
-    return message[ color ]();
+    return styled_message;
   }
 
   async #log_data(): Promise<void> {
@@ -121,8 +173,8 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
     this.bytesRead = this.req.socket.bytesRead;
     this.incoming.set( 'data-error', '' );
     this.incoming.set( 'id', await generate_id() );
-    this.incoming.set( 'ip_address', this.req.ip_address );
-    this.incoming.set( 'method', this.req.method );
+    this.incoming.set( 'ip_address', this.req.ip_address || 'UNKNOWN IP' );
+    this.incoming.set( 'method', this.req.method || 'UNKNOWN METHOD' );
     this.incoming.set( 'url', this.req.url || 'unknown' );
     this.incoming.set( 'httpVersion', `http/${this.req.httpVersion}` );
     this.incoming.set( 'host', this.req.headers.host || <string>this.req.headers[ ':authority' ] || 'UNKNOWN HOST' );
@@ -188,20 +240,29 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
     }
 
     if( ! routing.get( 'cluster' ) ){
-      routing.get( 'log_worker' ).send( { log_worker: true, counter: this.#counter.length, worker_id: this.wrk, message: message } );
+      const logWorker = routing.get( 'log_worker' );
+      if (logWorker) {
+        logWorker.send( { log_worker: true, counter: this.#counter.length, worker_id: this.wrk, message: message } );
+      }
     }
     else {
-      process.send( { log_worker: true, counter: this.#counter.length, worker_id: this.wrk, message: message } );
+      if (process.send) {
+        process.send( { log_worker: true, counter: this.#counter.length, worker_id: this.wrk, message: message } );
+      }
     }
 
     // if the log persistent is active send it to the worker.
     if( routing.get( 'log-persistent' ) ){
-      process.send( { 'log': message } );
+      if (process.send) {
+        process.send( { 'log': message } );
+      }
     }
 
     // if the control room is active, send the log to the control room.
     if( routing.get( 'control-room' ) ){
-      process.send( { 'control-room': message.join( '|' ) } );
+      if (process.send) {
+        process.send( { 'control-room': message.join( '|' ) } );
+      }
     }
 
   }
@@ -231,12 +292,12 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
 
     this.#log_data_incoming_check();
 
-    const post_data: Buffer|undefined = this.incoming?.get( 'request' )?.get( 'data' );
-    const get_data: URLSearchParams|undefined = this.incoming?.get( 'request' )?.get( 'url_params' );
+    const post_data = this.incoming?.get( 'request' )?.get( 'data' );
+    const get_data = this.incoming?.get( 'request' )?.get( 'url_params' );
 
     // todo: refactor this. It's a mess.
     const _post_data: number|object = post_data !== undefined && post_data.length > 0
-      ? this.to_object( post_data.toString() )
+      ? this.to_object( post_data.toString() ) || 0
       : 0;
 
     const _get_data: URLSearchParams|number = get_data !== undefined && get_data.size > 0
@@ -298,19 +359,22 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
     }
   }
 
-  end( data?: ( () => void ) | Buffer | Uint8Array | string, encoding?: ( () => void ) & BufferEncoding, callback?: () => void ): this {
+  end(): this;
+  end( chunk: any ): this;
+  end( chunk: any, cb?: () => void ): this;
+  end( chunk: any, encoding: BufferEncoding, cb?: () => void ): this;
+  end( chunk?: any, encodingOrCb?: BufferEncoding | ( () => void ), cb?: () => void ): this {
+    super.end( chunk, encodingOrCb as any, cb );
 
-    super.end( data, encoding, callback );
+    if( this.redirect ){}
+    if( ! this.listener_error ){}
 
-    if( this.redirect === true ){}
-    if( this.listener_error === false ){}
-
-    routing.get( 'response-time' ).set( 'end', performance.now() );
+    routing.set( 'response-time', performance.now() );
 
     if ( this.log ) {
 
       this.#counter.push( 1 );
-      this.bytesWritten = this.bytesWritten > 0 ? this.bytesWritten : this.socket.bytesWritten;
+      this.bytesWritten = this.bytesWritten > 0 ? this.bytesWritten : (this.socket?.bytesWritten || 0);
       this.#log_data().catch( error => process.stderr.write( `${ error }\n` ) );
     }
 
@@ -319,7 +383,7 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
 
   get_response_time(): number {
 
-    return routing.get( 'response-time' ).get( 'end' ) - this.#response_time;
+    return routing.get( 'response-time' ) - this.#response_time;
   }
 
   /**
@@ -336,6 +400,7 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
     const internal_server_error = Buffer.from( 'Internal Server Error' );
     if ( this.route.constructor.name === 'AsyncFunction' ) {
 
+      //@ts-expect-error - this is a workaround to allow the route to be a function or a promise
       const response = await this.route.call( null, IncomingMessage, this );
       if ( Buffer.isBuffer( response ) ) {
         this.bytesWritten = response.length;
@@ -350,6 +415,7 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
     }
     else if ( this.route instanceof Promise || this.route instanceof Function ) {
 
+      //@ts-expect-error - this is a workaround to allow the route to be a function or a promise
       let response = this.route.call( null, IncomingMessage, this );
       if ( response instanceof Promise ) {
         response = await response;
@@ -411,7 +477,7 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
     }
   }
 
-  to_json( data: {} ): string{
+  to_json( data: {} ): string | void{
 
     try{
 
@@ -420,14 +486,17 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
     catch( error ){
 
       const buffer = Buffer.from( '500 - Internal Server Error' );
-      process.stderr.write( `${ error.message }\n` );
+      if ( error instanceof SyntaxError ){
+        process.stderr.write( `${ error.message }\n` );
+      }
+
       this.writeHead( 500 );
       this.bytesWritten = buffer.length;
       this.end( buffer );
     }
   }
 
-  to_object( json: string, return_plain: boolean = true ): {}{
+  to_object( json: string, return_plain: boolean = true ): {} | void{
 
     try{
 
@@ -497,7 +566,7 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
 
   get route(): Route {
 
-    return this.#route;
+    return this.#route as Route;
   }
 
   set wrk( id: 0 | number ) {
