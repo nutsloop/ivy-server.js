@@ -12,6 +12,7 @@ export async function listener<K extends RoutingIncomingMessage>( IncomingMessag
   // reset the errors
   ServerResponse.incoming.set( 'error', [] );
   ServerResponse.incoming.set( 'data-error', '' );
+  ServerResponse.incoming.set( 'raw-headers', IncomingMessage.headers );
 
   // fix: in some cases the IncomingMessage is not a valid object or it is undefined.
   if( ! IncomingMessage ){
