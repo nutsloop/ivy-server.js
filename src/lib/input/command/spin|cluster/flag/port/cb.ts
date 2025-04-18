@@ -2,7 +2,7 @@ import type { CallBackFlag } from '@nutsloop/ivy-input';
 
 import { routing } from '../../../../../server/routing.js';
 
-export const port_cb: CallBackFlag = ( port: string ): void => {
+export const port_cb: CallBackFlag<string> = ( port: string ): void => {
 
   if( ! routing.get( 'ease' ) && Number( port ) < 1024 ){
     process.stderr.write( `Port number below 1024 requires root privileges. use \`ivy-server --ease spin --port=${port}\`\n this will not override system settings.` );

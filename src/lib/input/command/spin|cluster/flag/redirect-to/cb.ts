@@ -2,7 +2,7 @@ import type { CallBackFlag } from '@nutsloop/ivy-input';
 
 import { routing } from '../../../../../server/routing.js';
 
-export const redirect_to_cb: CallBackFlag = ( data: string ): void => {
+export const redirect_to_cb: CallBackFlag<string> = ( data: string ): void => {
 
   if( data.startsWith( 'http://' ) && data.startsWith( 'https://' ) ) {
     process.stderr.write( `  redirect url must NOT start with 'http://' or 'https://'.\n  the protocol will be added automatically.` );

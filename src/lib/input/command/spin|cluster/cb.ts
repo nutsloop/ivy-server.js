@@ -6,14 +6,11 @@ import { cpus } from 'node:os';
 import { control_room } from '../../../control/room.js';
 import { log_persistent } from '../../../log/persistent.js';
 import { process_listener } from '../../../server/process.js';
-import { routing } from '../../../server/routing.js';
+import { type LiveReloadConf, routing, type RoutingValue } from '../../../server/routing.js';
 import { socket } from '../../../socket/socket.js';
 
 const path = new Path();
 const killed_by_us = new Set<number>();
-
-type live_reload_config = Map<'host', string> &
-  Map<'port', number>;
 
 type SpinClusterData =
   CallBackArgvData<'address' | 'exec', string > &
@@ -24,13 +21,13 @@ type SpinClusterData =
     'socket', number > &
   CallBackArgvData<'http2' | 'https',
     Map<'cert' | 'dhparam' | 'key', string> | null > &
-  CallBackArgvData<'live-reload', live_reload_config >;
+  CallBackArgvData<'live-reload', LiveReloadConf >;
 
-const server_pid = [];
-const log_pid = [];
-const sse_pid = [];
+const server_pid: ( number | undefined )[] = [];
+const log_pid: ( number | undefined )[] = [];
+const sse_pid: ( number | undefined )[] = [];
 
-export const spin_cluster_cb: CallBackAsync = async ( data: SpinClusterData, spin: boolean ): Promise<void> => {
+export const spin_cluster_cb: CallBackAsync<SpinClusterData, [spin:boolean]> = async ( data: SpinClusterData, spin: boolean ): Promise<void> => {
 
   if( cluster.isPrimary ){
     process.stdout.write( ` ${'|'.red()}${'ivy'.red().underline()}(0) ${process.pid}\n` );
@@ -77,22 +74,27 @@ export const spin_cluster_cb: CallBackAsync = async ( data: SpinClusterData, spi
 
       cluster.on( 'exit', ( Worker, code, signal ) => {
 
-        if( server_pid.includes( Worker.process.pid ) ){
-          if( ! killed_by_us.has( Worker.process.pid ) ) {
-            server_pid.splice( server_pid.indexOf( Worker.process.pid ), 1 );
-            process.stdout.write( `worker -> ${ Worker.id } died with code [${ code }] & signal[${ signal }]. forking a new worker...\n`.yellow().underline().strong() );
-            server_pid.push( cluster.fork().process.pid );
+        if( Worker.process.pid ){
+          if ( server_pid.includes( Worker.process.pid ) ) {
+            if ( ! killed_by_us.has( Worker.process.pid ) ) {
+              server_pid.splice( server_pid.indexOf( Worker.process.pid ), 1 );
+              process.stdout.write( `worker -> ${ Worker.id } died with code [${ code }] & signal[${ signal }]. forking a new worker...\n`.yellow().underline().strong() );
+              server_pid.push( cluster.fork().process.pid );
+            }
           }
         }
       } );
 
       cluster.on( 'disconnect', ( Worker ) => {
-        if( server_pid.includes( Worker.process.pid ) ){
-          process.stdout.write( `worker -> ${ Worker.id } disconnected. killing and forking replacement...\n`.cyan().underline().strong() );
-          killed_by_us.add( Worker.process.pid );
-          Worker.process.kill();
-          server_pid.splice( server_pid.indexOf( Worker.process.pid ), 1 );
-          server_pid.push( cluster.fork().process.pid );
+
+        if( Worker.process.pid ){
+          if ( server_pid.includes( Worker.process.pid ) ) {
+            process.stdout.write( `worker -> ${ Worker.id } disconnected. killing and forking replacement...\n`.cyan().underline().strong() );
+            killed_by_us.add( Worker.process.pid );
+            Worker.process.kill();
+            server_pid.splice( server_pid.indexOf( Worker.process.pid ), 1 );
+            server_pid.push( cluster.fork().process.pid );
+          }
         }
       } );
 
@@ -100,10 +102,14 @@ export const spin_cluster_cb: CallBackAsync = async ( data: SpinClusterData, spi
 
       cluster.on( 'online', ( _Worker ) => {} );
       cluster.on( 'fork', ( Worker ) => {
-        if( server_pid.includes( Worker.process.pid ) ){
-          process.stdout.write( ` ${'|'.red()}${'   wrk'.red().underline()}(${ Worker.id }) ${Worker.process.pid}` );
-          process.stdout.write( ` listening on ${ routing.get( 'address' ).magenta() }:` );
-          process.stdout.write( `${ routing.get( 'port' ).toFixed().yellow() }\n` );
+        if ( server_pid.includes( Worker.process.pid ) ) {
+          process.stdout.write( ` ${ '|'.red() }${ '   wrk'.red().underline() }(${ Worker.id }) ${ Worker.process.pid }` );
+          const address = routing.get( 'address' );
+          const port = routing.get( 'port' );
+          if ( address && port ) {
+            process.stdout.write( ` listening on ${ address.magenta() }:` );
+            process.stdout.write( `${ port.toFixed().yellow() }\n` );
+          }
         }
       } );
 
@@ -116,20 +122,24 @@ export const spin_cluster_cb: CallBackAsync = async ( data: SpinClusterData, spi
         // ping control room socket every second
         // the control room will the send to the socket client memory usage.
         setInterval( () => {
-          process.send( { 'control-room':{
-            heap_usage: {
-              heap: {
-                id: cluster.worker.id,
-                pid: process.pid,
-                usage: Number( ( process.memoryUsage().rss / ( 1024 * 1024 ) ).toFixed( 2 ) ),
-                wrk: `worker-server-${ cluster.worker.id }`
+          if ( cluster.worker && process.send ) {
+            process.send( { 'control-room':{
+              heap_usage: {
+                heap: {
+                  id: cluster.worker.id,
+                  pid: process.pid,
+                  usage: Number( ( process.memoryUsage().rss / ( 1024 * 1024 ) ).toFixed( 2 ) ),
+                  wrk: `worker-server-${ cluster.worker.id }`
+                }
               }
-            }
-          } } );
+            } } );
+          }
         }, 500 );
       }
 
-      process.title = `ivy-server(${ cluster.worker.id })`;
+      if ( cluster.worker ) {
+        process.title = `ivy-server(${ cluster.worker.id })`;
+      }
       await server( data );
     }
   }
@@ -142,9 +152,12 @@ async function server( data: SpinClusterData ): Promise<void> {
   const port: number = data.get( 'port' ) || 3001;
 
   if( data.get( 'https' ) === null || data.get( 'https' ) ){
+    const httpsConfig = data.get( 'https' );
+    // Convert null to undefined to match the expected type
+    const config = httpsConfig === null ? undefined : httpsConfig;
 
     await ( await import( '../../../server/type/https.js' ) )
-      .https( port, address, data.get( 'https' ) );
+      .https( port, address, config );
 
   }
   else{
@@ -154,7 +167,7 @@ async function server( data: SpinClusterData ): Promise<void> {
   }
 }
 
-async function spawn_live_reload_wrk( invoked_flag: boolean, sse_config_data: live_reload_config ): Promise<void> {
+async function spawn_live_reload_wrk( invoked_flag: RoutingValue, sse_config_data: LiveReloadConf | undefined ): Promise<void> {
 
   if( invoked_flag && cluster.isPrimary ){
 
@@ -166,7 +179,7 @@ async function spawn_live_reload_wrk( invoked_flag: boolean, sse_config_data: li
       sse_config.set( 'port', 6553 );
     }
 
-    if( sse_config_data !== null ){
+    if( sse_config_data !== null && sse_config_data ){
 
       if( sse_config_data.has( 'host' ) ){
         sse_config.set( 'host', sse_config_data.get( 'host' ) );
@@ -181,6 +194,8 @@ async function spawn_live_reload_wrk( invoked_flag: boolean, sse_config_data: li
         sse_config.set( 'port', 6553 );
       }
     }
+
+    routing.set( 'live-reload-conf', sse_config );
 
     const sse_wrk = [
       path.dirname( new URL( import.meta.url ).pathname ),
@@ -210,7 +225,7 @@ async function spawn_live_reload_wrk( invoked_flag: boolean, sse_config_data: li
   }
 }
 
-async function spawn_log_wrk( invoked_flag: boolean ): Promise<void> {
+async function spawn_log_wrk( invoked_flag: RoutingValue ): Promise<void> {
 
   if ( invoked_flag && cluster.isPrimary ){
     const log_wrk = [
@@ -238,7 +253,7 @@ async function spawn_log_wrk( invoked_flag: boolean ): Promise<void> {
   }
 }
 
-async function spawn_control_room( invoked_flag: boolean ): Promise<void> {
+async function spawn_control_room( invoked_flag: boolean | undefined ): Promise<void> {
 
   if( invoked_flag ){
     if( cluster.isPrimary ) {
@@ -256,7 +271,7 @@ async function spawn_control_room( invoked_flag: boolean ): Promise<void> {
   }
 }
 
-async function spawn_log_persistent( invoked_flag: boolean, threads: number ): Promise<void> {
+async function spawn_log_persistent( invoked_flag: boolean | undefined, threads: number | undefined ): Promise<void> {
 
 
   if( invoked_flag ){
@@ -275,7 +290,7 @@ async function spawn_log_persistent( invoked_flag: boolean, threads: number ): P
   }
 }
 
-async function spawn_socket( invoked_flag: boolean, threads: number ): Promise<void> {
+async function spawn_socket( invoked_flag: boolean | undefined, threads: number | undefined ): Promise<void> {
 
   if( invoked_flag ){
     if( cluster.isPrimary ) {

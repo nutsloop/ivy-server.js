@@ -4,7 +4,7 @@ import * as os from 'node:os';
 
 import { routing } from '../../../../../server/routing.js';
 
-export const cpus_cb: CallBackFlag = ( cpus: number ): void => {
+export const cpus_cb: CallBackFlag<number> = ( cpus: number ): void => {
 
   if( ! routing.get( 'ease-cluster' ) && os.cpus().length < cpus ){
 

@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 
 import { routing } from '../../../../../server/routing.js';
 
-export const virtual_routes_cb: CallBackFlagAsync = async ( data: string ): Promise<void> => {
+export const virtual_routes_cb: CallBackFlagAsync<string> = async ( data: string ): Promise<void> => {
 
   const absolute_path = await isValid( ...[ process.cwd(), data || 'vroutes' ] )
     .catch( error => error );

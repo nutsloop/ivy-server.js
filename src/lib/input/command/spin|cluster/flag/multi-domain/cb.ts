@@ -5,7 +5,7 @@ import type { MultiDomainConfig } from '../../../../../server/dispacher.js';
 
 import { routing } from '../../../../../server/routing.js';
 
-export const multi_domain_cb: CallBackFlagAsync = async ( data: string ): Promise<void> => {
+export const multi_domain_cb: CallBackFlagAsync<string> = async ( data: string ): Promise<void> => {
 
 
   const absolute_path = await isValid( ...[ process.cwd(), data || '' ] )

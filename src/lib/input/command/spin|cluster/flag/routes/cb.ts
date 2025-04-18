@@ -3,13 +3,13 @@ import type { CallBackFlagAsync } from '@nutsloop/ivy-input';
 import { isValid, parse, resolve } from '@nutsloop/ivy-cross-path';
 import { readdir } from 'fs/promises';
 
-import { routing } from '../../../../../server/routing.js';
+import { routing, RoutingRoute } from '../../../../../server/routing.js';
 
 type RoutesSettings =
   Map<'path', null | string> &
   Map<'pre-load', true>;
 
-export const routes_cb: CallBackFlagAsync = async ( data: RoutesSettings | string ): Promise<void> => {
+export const routes_cb: CallBackFlagAsync<RoutesSettings | string> = async ( data: RoutesSettings | string ): Promise<void> => {
 
   const process_cwd = process.cwd();
   let path: string = typeof data === 'string' ? data : 'routes';
@@ -82,14 +82,14 @@ function check_routes_kvp( data: RoutesSettings ):void {
 
 async function recursive_routes( absolute_path: string, process_cwd: string, routes_path: string ): Promise<void> {
 
-  const readddir_recursive = await readdir( absolute_path, { withFileTypes: true } );
+  const read_dir = await readdir( absolute_path, { withFileTypes: true } );
 
-  if( readddir_recursive.length === 0 ){
+  if( read_dir.length === 0 ){
     process.stderr.write( `--routes path: [${ absolute_path.red() }] is empty.\n` );
     process.exit( 1 );
   }
 
-  for ( const dirent of readddir_recursive ) {
+  for ( const dirent of read_dir ) {
     if( dirent.isDirectory() ){
       await recursive_routes( `${ absolute_path }/${ dirent.name }`, process_cwd, routes_path );
     }
@@ -100,7 +100,7 @@ async function recursive_routes( absolute_path: string, process_cwd: string, rou
         .replace( `${process_cwd}/`, '' )
         .replace( routes_path, '' );
       const route_path = resolve( `${parse( base_route_path ).dir}`, `${parse( base_route_path ).name}` );
-      const routes = routing.get( 'routes' );
+      const routes = routing.get( 'routes' ) as RoutingRoute;
 
       if( routes.has( route_path ) ){
         process.stderr.write( `Route [${ route_path.red() }] already exists.\n` );

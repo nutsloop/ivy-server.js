@@ -4,7 +4,7 @@ import { isFile } from '@nutsloop/ivy-cross-path';
 
 import { routing } from '../../../../../server/routing.js';
 
-export const exec_cb: CallBackFlagAsync = async ( data: string ): Promise<void> => {
+export const exec_cb: CallBackFlagAsync<string> = async ( data: string ): Promise<void> => {
 
   const absolute_path = await isFile( data )
     .catch( error => error );
