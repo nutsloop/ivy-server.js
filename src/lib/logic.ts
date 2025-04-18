@@ -14,13 +14,20 @@ const use_interface: Set<boolean> = new Set();
  */
 export const logic: CLILogic = async ( parsed_argv: ParsedArgv ): Promise<void> => {
 
-  if( use_interface.has( false ) && parsed_argv.get( 'flag' ).has( '--exec' ) ){
+  const flag = parsed_argv.get( 'flag' );
+  if( use_interface.has( false ) && flag && flag.has( '--exec' ) ){
     throw SyntaxError( '--exec flag is available only when using ivy-server programmatically.\n' +
       'See: https://ivy-server.nutsloop.com/cli.html#exec-flag' );
   }
 
   // necessary to switch between spin and cluster commands.
-  command_call.add( parsed_argv.get( 'command' ).keys().next().value );
+  const command = parsed_argv.get( 'command' );
+  if ( command ) {
+    const commandValue = command.keys().next().value;
+    if ( commandValue ) {
+      command_call.add( commandValue );
+    }
+  }
   await definition().catch( console.error );
 
   await cli( parsed_argv )
@@ -30,7 +37,7 @@ export const logic: CLILogic = async ( parsed_argv: ParsedArgv ): Promise<void> 
 /**
  * entry point of the ivy-server cli.
  */
-export async function entry_point( argv: string[] = undefined, use_interface_switch: boolean = false ): Promise<void> {
+export async function entry_point( argv: string[] | undefined = undefined, use_interface_switch: boolean = false ): Promise<void> {
 
   use_interface_switch === true ? use_interface.add( true ) : use_interface.add( false );
 
