@@ -1,6 +1,6 @@
 {
   "name": "@nutsloop/ivy-server",
-  "version": "1.3.0-alpha.14",
+  "version": "1.4.0-alpha.0",
   "license": "Apache-2.0",
   "description": "Facilitating & Enhancing Network Strength.",
   "type": "module",
@@ -19,7 +19,8 @@
     "bin",
     "lib",
     "index.js",
-    "types"
+    "types",
+    "!*.js.map"
   ],
   "publishConfig": {
     "access": "public"
@@ -37,15 +38,15 @@
     "@nutsloop/ivy-ansi": "^1.0.0-alpha.3",
     "@nutsloop/ivy-async-import-meta-resolve": "^1.0.0-alpha.1",
     "@nutsloop/ivy-cross-path": "^1.0.0-alpha.2",
-    "@nutsloop/ivy-input": "^1.1.0-alpha.0",
+    "@nutsloop/ivy-input": "^1.2.0-alpha.0",
     "@nutsloop/ivy-watcher": "^1.1.0-alpha.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.24.0",
-    "@types/node": "^22.14.0",
+    "@types/node": "^22.14.1",
     "@types/ws": "^8.18.1",
-    "@typescript-eslint/eslint-plugin": "^8.29.1",
-    "@typescript-eslint/parser": "^8.29.1",
+    "@typescript-eslint/eslint-plugin": "^8.30.1",
+    "@typescript-eslint/parser": "^8.30.1",
     "eslint": "^9.24.0",
     "eslint-plugin-perfectionist": "^4.11.0",
     "nodemon": "^3.1.9",
