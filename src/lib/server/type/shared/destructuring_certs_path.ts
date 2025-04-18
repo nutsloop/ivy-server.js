@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { catcher } from '../exception/catcher.js';
 
 export async function destructuring_certs_path(
-  certs_path: Map<'cert' | 'dhparam' | 'key', string>
+  certs_path: Map<'cert' | 'dhparam' | 'key', string> | undefined,
 ): Promise<Buffer<ArrayBufferLike>[]> {
 
   const defaults = [

@@ -16,9 +16,6 @@ export async function https( port:number, address:string, certs_path: Map<'cert'
   typeof RoutingServerResponse
 >> {
 
-  if( ! certs_path ) {
-    throw new Error( 'certs_path is required' );
-  }
   const [ key, cert, dhparam ] = await destructuring_certs_path( certs_path );
 
   const https_server = createServer<
