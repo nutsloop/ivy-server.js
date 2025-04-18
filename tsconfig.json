@@ -10,7 +10,18 @@
     "allowJs": false,
     "experimentalDecorators": true,
     "declarationDir": "./types",
-    "listEmittedFiles": true
+    "listEmittedFiles": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+    "sourceMap": true,
+    "incremental": true,
+    "tsBuildInfoFile": "./.tsbuildinfo",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
   },
   "include": [
     "./src/**/*"
