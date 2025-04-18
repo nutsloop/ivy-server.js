@@ -89,10 +89,6 @@ class BaseServer implements IServer{
 
     this.#server_running_check();
 
-    if( options && ! ( options instanceof Map ) ){
-      throw new TypeError( 'options must be a Map instance' );
-    }
-
     if( ! options || options.size === 0 ){
       this.#argv.push( 'spin' );
 
@@ -192,6 +188,8 @@ class BaseServer implements IServer{
         }
       }
     }
+
+    return this;
   }
 }
 
