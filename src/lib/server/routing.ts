@@ -58,9 +58,11 @@ export type RoutingKey =
   | 'log'
   | 'log-color'
   | 'log-persistent'
+  | 'log-request-headers'
   | 'log_worker'
   | 'multi-domain'
   | 'mute-client-error'
+  | 'plugins'
   | 'port'
   | 'redirect'
   | 'redirect-to-https'
@@ -93,9 +95,11 @@ export type RoutingValueMap = {
   'log': boolean;
   'log-color': boolean;
   'log-persistent': boolean;
+  'log-request-headers': boolean;
   'log_worker': Worker | undefined;
   'multi-domain': DomainConfig;
   'mute-client-error': boolean;
+  'plugins': string[];
   'port': number;
   'redirect': string;
   'redirect-to-https': boolean;
@@ -135,9 +139,11 @@ export class RoutingMap extends Map<RoutingKey, RoutingValue> {
       [ 'log', false ],
       [ 'log-color', false ],
       [ 'log-persistent', false ],
+      [ 'log-request-headers', false ],
       [ 'log_worker', undefined ],
       [ 'multi-domain', new Map() ],
       [ 'mute-client-error', false ],
+      [ 'plugins', [] ],
       [ 'port', 3001 ],
       [ 'redirect', '' ],
       [ 'redirect-to-https', false ],
