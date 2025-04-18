@@ -11,11 +11,14 @@ import { RoutingIncomingMessage } from '../routing/routing-incoming-message.js';
 import { RoutingServerResponse } from '../routing/routing-server-response.js';
 import { destructuring_certs_path } from './shared/destructuring_certs_path.js';
 
-export async function https( port:number, address:string, certs_path: Map<'cert'|'dhparam'|'key', string> ): Promise<Server<
+export async function https( port:number, address:string, certs_path: Map<'cert'|'dhparam'|'key', string> | undefined ): Promise<Server<
   typeof RoutingIncomingMessage,
   typeof RoutingServerResponse
 >> {
 
+  if( ! certs_path ) {
+    throw new Error( 'certs_path is required' );
+  }
   const [ key, cert, dhparam ] = await destructuring_certs_path( certs_path );
 
   const https_server = createServer<
@@ -39,7 +42,7 @@ export async function https( port:number, address:string, certs_path: Map<'cert'
     console.trace( inspect( error, true, Infinity, true ) );
   } );
 
-  https_server.on( 'clientError', ( error: Error & { code?: string }, socket: Socket ) => {
+  https_server.on( 'clientError', ( error: Error & { code: string }, socket: Socket ) => {
 
     if ( ! routing.get( 'mute-client-error' ) ){
       const ip = socket.remoteAddress ?? 'unknown';

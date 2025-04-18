@@ -30,7 +30,7 @@ export async function http( port: number, address: string ): Promise<Server<
     console.trace( inspect( error, true, Infinity, true ) );
   } );
 
-  http_server.on( 'clientError', async ( error: Error & { code?: string }, socket: Socket ) => {
+  http_server.on( 'clientError', async ( error: Error & { code: string }, socket: Socket ) => {
 
     if ( ! routing.get( 'mute-client-error' ) ){
       const ip = socket.remoteAddress ?? 'unknown';
