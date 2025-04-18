@@ -25,7 +25,7 @@ export interface LogConfig {
   init_args?: unknown[];
 }
 
-const worker_pid = [];
+const worker_pid: ( number | undefined )[] = [];
 
 export async function log_persistent( log_config_path: string, threads?: number, ): Promise<void> {
 
@@ -35,13 +35,16 @@ export async function log_persistent( log_config_path: string, threads?: number,
     'worker.js',
   ];
 
+  const control_room = routing.get( 'control-room' ) || false;
   cluster.setupPrimary( {
-    args: [ log_config_path, routing.get( 'control-room' ).toString() ],
+    args: [ log_config_path, control_room.toString() ],
     exec: path.resolve( ...ivy_log_worker ),
   } );
 
-  for ( let i = 0; i < threads; i ++ ) {
-    worker_pid.push( cluster.fork().process.pid );
+  if( typeof threads === 'number' ) {
+    for ( let i = 0; i < threads; i ++ ) {
+      worker_pid.push( cluster.fork().process.pid );
+    }
   }
 
   cluster.on( 'exit', ( _Worker, _code, _signal ) => {
@@ -66,13 +69,17 @@ export async function log_persistent( log_config_path: string, threads?: number,
   cluster.on( 'disconnect', ( _Worker ) => {} );
   cluster.on( 'message', async ( _Worker, message, _Handle ) => {
     if ( message?.log ) {
-      const log_workers = [];
-      for ( const worker of Object.values( cluster.workers ) ) {
-        if ( worker_pid.includes( worker.process.pid ) ) {
-          log_workers.push( worker );
+      if ( cluster.workers ) {
+        const log_workers = [];
+        for ( const worker of Object.values( cluster.workers ) ) {
+          if ( worker !== undefined ) {
+            if ( worker_pid.includes( worker.process.pid ) ) {
+              log_workers.push( worker );
+            }
+          }
         }
+        log_workers[ get_random_worker( log_workers.length ) ].send( message.log );
       }
-      log_workers[ get_random_worker( log_workers.length ) ].send( message.log );
     }
   } );
 }

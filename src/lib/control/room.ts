@@ -10,7 +10,7 @@ export interface ControlRoomConfig{
   port: number;
 }
 
-const worker_pid = [];
+const worker_pid: ( number | undefined )[] = [];
 
 export async function control_room( control_room_config_file_path: string ): Promise<void> {
 
@@ -41,9 +41,11 @@ export async function control_room( control_room_config_file_path: string ): Pro
   cluster.on( 'disconnect', ( _Worker ) => {} );
   cluster.on( 'message', ( _Worker, _message: OfMessage, _Handle ) => {
 
-    for( const wrk of Object.values( cluster.workers ) ){
-      if( worker_pid.includes( wrk.process.pid ) ){
-        wrk.send( _message );
+    if (cluster.workers) {
+      for( const wrk of Object.values( cluster.workers ) ){
+        if( wrk && worker_pid.includes( wrk.process.pid ) ){
+          wrk.send( _message );
+        }
       }
     }
   } );
@@ -59,25 +61,29 @@ export async function control_room( control_room_config_file_path: string ): Pro
    */
   setInterval( () => {
     const control_room_workers = [];
-    for( const worker of Object.values( cluster.workers ) ){
-      if( worker_pid.includes( worker.process.pid ) ){
-        control_room_workers.push( worker );
+    if (cluster.workers) {
+      for( const worker of Object.values( cluster.workers ) ){
+        if( worker && worker_pid.includes( worker.process.pid ) ){
+          control_room_workers.push( worker );
+        }
       }
     }
 
     // request the heap usage of the worker.
-    control_room_workers[ 0 ].send( { 'control-room': 'heap-usage-self' } );
+    if (control_room_workers.length > 0) {
+      control_room_workers[0].send( { 'control-room': 'heap-usage-self' } );
 
-    // send the heap usage of the server-main.
-    control_room_workers[ 0 ].send( { 'control-room':{
-      heap_usage: {
-        heap: {
-          id: 0,
-          pid: process.pid,
-          usage: Number( ( process.memoryUsage().rss / ( 1024 * 1024 ) ).toFixed( 2 ) ),
-          wrk: 'server-main'
+      // send the heap usage of the server-main.
+      control_room_workers[0].send( { 'control-room':{
+        heap_usage: {
+          heap: {
+            id: 0,
+            pid: process.pid,
+            usage: Number( ( process.memoryUsage().rss / ( 1024 * 1024 ) ).toFixed( 2 ) ),
+            wrk: 'server-main'
+          }
         }
-      }
-    } } );
+      } } );
+    }
   }, 500 );
 }

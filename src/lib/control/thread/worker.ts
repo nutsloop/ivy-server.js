@@ -17,7 +17,16 @@ export type OfMessage = {
 
 extends_proto();
 
-process.title = `ivy-socket-control-room(${ cluster.worker.id })`;
+// Ensure we're in a worker context
+if (!cluster.worker) {
+  console.error('This script must be run as a worker process');
+  process.exit(1);
+}
+
+// Type assertion to tell TypeScript that cluster.worker is defined
+const worker = cluster.worker;
+
+process.title = `ivy-socket-control-room(${ worker.id })`;
 // splice the first two elements from the process.argv array
 process.argv.splice( 0, 2 );
 
@@ -27,7 +36,7 @@ if( process.argv.length > 1 ){
 }
 
 const controlRoomConfigFile = process.argv[ 0 ];
-const streaming = [];
+const streaming: ( string | Uint8Array<ArrayBufferLike> )[] = [];
 
 const config = await import( controlRoomConfigFile ).then( module => module );
 const exportedModule = Object.keys( config );
@@ -73,8 +82,8 @@ process.on( 'message', ( message: {'control-room': OfMessage } ) => {
     if ( message[ 'control-room' ] === 'heap-usage-self' ){
       message_to_client = JSON.stringify( {
         heap: {
-          id: cluster.worker.id,
-          pid: cluster.worker.process.pid,
+          id: worker.id,
+          pid: worker.process.pid,
           usage: Number( ( process.memoryUsage().rss / ( 1024 * 1024 ) ).toFixed( 2 ) ),
           wrk: 'control-room'
         }
@@ -99,8 +108,8 @@ process.on( 'message', ( message: {'control-room': OfMessage } ) => {
 
 function listeningListener(){
 
-  const pid = cluster.worker.process.pid;
-  const id = cluster.worker.id;
+  const pid = worker.process.pid;
+  const id = worker.id;
   const address = controlRoomConfig.hostname.magenta();
   const port = `:${controlRoomConfig.port.toString().yellow()}`;
 
@@ -126,7 +135,10 @@ async function listener( socket: Socket ){
   setInterval( () => {
 
     if( streaming.length > 0 ){
-      socket.write( streaming.shift() );
+      const data = streaming.shift();
+      if (data) {
+        socket.write(data);
+      }
     }
   }, 100 );
 }

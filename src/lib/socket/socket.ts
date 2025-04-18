@@ -17,7 +17,7 @@ export interface SocketConfig{
   type: 'sock' | 'tls';
 }
 
-const worker_pid = [];
+const worker_pid: ( number | undefined )[] = [];
 
 export async function socket( socket_config_path: string, threads?: number ): Promise<void> {
 
@@ -32,8 +32,10 @@ export async function socket( socket_config_path: string, threads?: number ): Pr
     exec: path.resolve( ...ivy_socket_worker )
   } );
 
-  for ( let i = 0; i < threads; i ++ ) {
-    worker_pid.push( cluster.fork().process.pid );
+  if( typeof threads === 'number' ) {
+    for ( let i = 0; i < threads; i ++ ) {
+      worker_pid.push( cluster.fork().process.pid );
+    }
   }
 
   cluster.on( 'exit', ( _Worker, _code, _signal ) => {

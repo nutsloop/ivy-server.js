@@ -2,12 +2,22 @@
 
 import { extends_proto } from '@nutsloop/ivy-ansi';
 import cluster from 'node:cluster';
+import { Socket } from 'node:net';
 
 import { SocketConfig } from '../socket.js';
 
 extends_proto();
 
-process.title = `ivy-socket(${ cluster.worker.id })`;
+// Ensure we're in a worker context
+if ( ! cluster.worker ) {
+  console.error( 'This script must be run as a worker process' );
+  process.exit( 1 );
+}
+
+// Type assertion to tell TypeScript that cluster.worker is defined
+const worker = cluster.worker;
+
+process.title = `ivy-socket(${ worker.id })`;
 // splice the first two elements from the process.argv array
 process.argv.splice( 0, 2 );
 
@@ -44,16 +54,20 @@ if( control_room ){
   // ping control room socket every second
   // the control room will the send to the socket client memory usage.
   setInterval( () => {
-    process.send( { 'control-room':{
-      heap_usage: {
-        heap: {
-          id: cluster.worker.id,
-          pid: process.pid,
-          usage: Number( ( process.memoryUsage().rss / ( 1024 * 1024 ) ).toFixed( 2 ) ),
-          wrk: 'socket'
+    if ( process.send ) {
+      process.send( {
+        'control-room': {
+          heap_usage: {
+            heap: {
+              id: worker.id,
+              pid: process.pid,
+              usage: Number( ( process.memoryUsage().rss / ( 1024 * 1024 ) ).toFixed( 2 ) ),
+              wrk: 'socket'
+            }
+          }
         }
-      }
-    } } );
+      } );
+    }
   }, 500 );
 }
 
@@ -80,7 +94,7 @@ else if( socketConfig.type === 'sock' ){
   const socket = createServer( {
     keepAlive: true,
     ...socketConfig.socketOptions || {}
-  }, socketConfig.listener );
+  }, socketConfig.listener as ( socket: Socket ) => void );
 
   socket.listen( socketConfig.socketPath || `${process.cwd()}/ivy.sock`, listeningListener );
 
@@ -92,18 +106,20 @@ else if( socketConfig.type === 'sock' ){
 
 function listeningListener(){
 
-  const pid = cluster.worker.process.pid;
-  const id = cluster.worker.id;
-  let address: string;
-  let port: string;
+  const pid = worker.process.pid;
+  const id = worker.id;
+  let address = '';
+  let port = '';
 
   if( socketConfig.type === 'tls' ){
     address = socketConfig.hostname.magenta();
     port = `:${socketConfig.port.toString().yellow()}`;
   }
   else if( socketConfig.type === 'sock' ){
-    address = socketConfig.socketPath.magenta();
-    port = '';
+    if( socketConfig.socketPath ) {
+      address = socketConfig.socketPath.magenta();
+      port = '';
+    }
   }
 
   process.stdout.write( ` ${'|'.red()}${'   soc'.red().underline()}(${ id }) ${pid} listening on ${ address }${ port }\n` );

@@ -6,10 +6,19 @@ import type { LogConfig } from '../persistent.js';
 
 extends_proto();
 
-const process_id = [];
-process_id.push( cluster.worker.process.pid );
+// Ensure we're in a worker context
+if ( ! cluster.worker ) {
+  console.error( 'This script must be run as a worker process' );
+  process.exit( 1 );
+}
 
-process.title = `ivy-log(${ cluster.worker.id })`;
+// Type assertion to tell TypeScript that cluster.worker is defined
+const worker = cluster.worker;
+
+const process_id = [];
+process_id.push( worker.process.pid );
+
+process.title = `ivy-log(${ worker.id })`;
 // splice the first two elements from the process.argv array
 process.argv.splice( 0, 2 );
 
@@ -44,12 +53,12 @@ if( logConfig?.init ){
 
   if( logConfig.init.constructor.name === 'AsyncFunction' ){
 
-    await logConfig.init( ...logConfig.init_args )
+    await logConfig.init( ...logConfig.init_args as unknown[] )
       // @ts-expect-error: @allowed
       .catch( console.error ) as Promise<void>;
   }
   else if( logConfig instanceof Function ){
-    logConfig.init( ...logConfig.init_args );
+    logConfig.init( ...logConfig.init_args as unknown[] );
   }
 }
 
@@ -61,16 +70,18 @@ if( control_room ){
   // ping control room socket every second
   // the control room will the send to the socket client memory usage.
   setInterval( () => {
-    process.send( { 'control-room':{
-      heap_usage: {
-        heap: {
-          id: cluster.worker.id,
-          pid: process.pid,
-          usage: Number( ( process.memoryUsage().rss / ( 1024 * 1024 ) ).toFixed( 2 ) ),
-          wrk: 'log'
+    if ( process.send ) {
+      process.send( { 'control-room':{
+        heap_usage: {
+          heap: {
+            id: worker.id,
+            pid: process.pid,
+            usage: Number( ( process.memoryUsage().rss / ( 1024 * 1024 ) ).toFixed( 2 ) ),
+            wrk: 'log'
+          }
         }
-      }
-    } } );
+      } } );
+    }
   }, 500 );
 }
 
@@ -81,7 +92,7 @@ process.on( 'message', async ( message: string[] ) => {
         // @ts-expect-error: @allowed
         .catch( console.error ) as Promise<void>;
   }
-  else if( logConfig.callback instanceof Function ){
+  else {
     logConfig.callback( message );
   }
 } );

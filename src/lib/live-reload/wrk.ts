@@ -6,28 +6,44 @@ import { watcher } from '@nutsloop/ivy-watcher';
 import cluster from 'node:cluster';
 import http from 'node:http';
 
+import { LiveReloadConf } from '../server/routing.js';
+
 extends_proto();
 
-process.argv.splice( 0, 2 );
-process.title = `ivy-sse(${ cluster.worker.id })`;
-
-type sse_conf = Map<string, string | number>;
-
-const sse_conf: sse_conf = new Map();
-
-const argv = process.argv;
-
-for ( let i = 0; i < argv.length; i += 2 ) {
-  const key = argv[ i ];
-  const value = key === 'port' ? Number( argv[ i + 1 ] ) : argv[ i + 1 ];
-  sse_conf.set( key, value );
+// Ensure we're in a worker context
+if ( ! cluster.worker ) {
+  console.error( 'This script must be run as a worker process' );
+  process.exit( 1 );
 }
 
-const host: string = sse_conf.get( 'host' ) as string;
-const port: number = sse_conf.get( 'port' ) as number;
+// Type assertion to tell TypeScript that cluster.worker is defined
+const worker = cluster.worker;
+
+process.argv.splice( 0, 2 );
+process.title = `ivy-sse(${ worker.id })`;
+
+const sse_conf: LiveReloadConf = new Map();
+
+type LiveReloadKey = 'cors_port' | 'host' | 'port';
+const argv = process.argv as unknown as [LiveReloadKey, string, LiveReloadKey, string, LiveReloadKey, string];
+
+for ( let i = 0; i < argv.length; i += 2 ) {
+  const key = argv[ i ] as LiveReloadKey;
+  const raw = argv[ i + 1 ];
+
+  if ( key === 'port' ) {
+    sse_conf.set( key, Number( raw ) );
+  }
+  else {
+    sse_conf.set( key, raw );
+  }
+}
+
+const host = sse_conf.get( 'host' );
+const port = sse_conf.get( 'port' );
 const cors_address = `http://${sse_conf.get( 'host' )}:${sse_conf.get( 'cors_port' )}`;
 
-const clients = [];
+const clients: ( http.ServerResponse<http.IncomingMessage> & { req: http.IncomingMessage; } )[] = [];
 const server = http.createServer( ( req, res ) => {
   if ( req.url === '/events' ) {
     res.writeHead( 200, {
