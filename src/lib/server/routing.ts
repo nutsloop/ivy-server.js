@@ -18,46 +18,8 @@ type ImportedRoute = {
   post: Route,
 };
 
-type RoutingRoute = Map<string, ImportedRoute | Route>;
-
-/**
- * todo - refactor if necessary
- */
-export type Routing =
-  Map<'address' |
-    'exec' |
-    'redirect' |
-    'routes-path' |
-    'served-by-name' |
-    'www-root', string> &
-  Map<'cluster' |
-    'acme-challenge' |
-    'control-room' |
-    'cut-user-agent' |
-    'ease' |
-    'ease-cluster' |
-    'hot-routes' |
-    'live-reload' |
-    'log' |
-    'log-all' |
-    'log-color' |
-    'log-persistent' |
-    'mute-client-error' |
-    'redirect-to-https' |
-    'routes-active' |
-    'secure' |
-    'served-by' |
-    'socket' |
-    'to-index-html', boolean> &
-  Map<'counter', 1[]> &
-  Map<'log_worker', Worker> &
-  Map<'cpus' | 'port', number> &
-  Map<'response-time', Map<'end', number>> &
-  Map<'routes', RoutingRoute> &
-  Map<'multi-domain', DomainConfig> &
-  Map<'virtual-routes', string[]>;
-
-export type RequestData = Map<'data', Buffer | undefined> & Map<'url_params', URLSearchParams | undefined>;
+export type RoutingRoute = Map<string, ImportedRoute | Route>;
+export type RequestData = Map<'data', Buffer | undefined | void> & Map<'url_params', URLSearchParams | undefined | void>;
 
 /**
  * why is this done this way?
@@ -73,39 +35,135 @@ type SyncRoute = ( this: RequestData, IncomingMessage: ServerTypeIncoming, Serve
 type PromiseRoute = ( this: RequestData, IncomingMessage: ServerTypeIncoming, ServerResponse: ServerTypesResponse ) => PromiseLike<Buffer | void>;
 export type Route = AsyncRoute | PromiseRoute | SyncRoute;
 
-export const routing: Routing = new Map();
-routing.set( 'acme-challenge', false );
-routing.set( 'mute-client-error', false );
-routing.set( 'log_worker', undefined );
-routing.set( 'hot-routes', false );
-routing.set( 'port', 3001 );
-routing.set( 'address', '0.0.0.0' );
-routing.set( 'served-by', false );
-routing.set( 'served-by-name', 'ivy-server' );
-routing.set( 'counter', [] );
-routing.set( 'control-room', false );
-routing.set( 'log', false );
-routing.set( 'log-color', false );
-routing.set( 'log-persistent', false );
-routing.set( 'live-reload', false );
-routing.set( 'to-index-html', false );
-routing.set( 'exec', '' );
-routing.set( 'cpus', 1 );
-routing.set( 'www-root', path.resolve( process.cwd(), 'public' ) );
-routing.set( 'routes-active', false );
-routing.set( 'routes-path', path.resolve( process.cwd(), 'routes' ) );
-routing.set( 'ease', false );
-routing.set( 'ease-cluster', false );
-routing.set( 'socket', false );
-routing.set( 'virtual-routes', [] );
-routing.set( 'multi-domain', new Map() );
-routing.set( 'cluster', false );
-routing.set( 'redirect', '' );
-routing.set( 'redirect-to-https', false );
-routing.set( 'routes', new Map() );
-routing.set( 'secure', false );
-routing.set( 'cut-user-agent', false );
-routing.set( 'response-time', new Map( [ [ 'end', performance.now() ] ] ) );
+export type LiveReloadConf = Map<'host' | 'cors_port', string> &
+  Map<'port', number>;
+
+/**
+ * todo - refactor if necessary
+ */
+export type RoutingKey =
+  | 'acme-challenge'
+  | 'address'
+  | 'cluster'
+  | 'control-room'
+  | 'counter'
+  | 'cpus'
+  | 'cut-user-agent'
+  | 'ease'
+  | 'ease-cluster'
+  | 'exec'
+  | 'hot-routes'
+  | 'live-reload'
+  | 'live-reload-conf'
+  | 'log'
+  | 'log-color'
+  | 'log-persistent'
+  | 'log_worker'
+  | 'multi-domain'
+  | 'mute-client-error'
+  | 'port'
+  | 'redirect'
+  | 'redirect-to-https'
+  | 'response-time'
+  | 'routes'
+  | 'routes-active'
+  | 'routes-path'
+  | 'secure'
+  | 'served-by'
+  | 'served-by-name'
+  | 'socket'
+  | 'to-index-html'
+  | 'virtual-routes'
+  | 'www-root';
+
+export type RoutingValueMap = {
+  'acme-challenge': boolean;
+  'address': string;
+  'cluster': boolean;
+  'control-room': boolean;
+  'counter': 1[];
+  'cpus': number;
+  'cut-user-agent': boolean;
+  'ease': boolean;
+  'ease-cluster': boolean;
+  'exec': string;
+  'hot-routes': boolean;
+  'live-reload': boolean;
+  'live-reload-conf': LiveReloadConf;
+  'log': boolean;
+  'log-color': boolean;
+  'log-persistent': boolean;
+  'log_worker': Worker | undefined;
+  'multi-domain': DomainConfig;
+  'mute-client-error': boolean;
+  'port': number;
+  'redirect': string;
+  'redirect-to-https': boolean;
+  'response-time': number;
+  'routes': RoutingRoute;
+  'routes-active': boolean;
+  'routes-path': string;
+  'secure': boolean;
+  'served-by': boolean;
+  'served-by-name': string;
+  'socket': boolean;
+  'to-index-html': boolean;
+  'virtual-routes': string[];
+  'www-root': string;
+};
+
+export type RoutingValue = RoutingValueMap[RoutingKey];
+
+export class RoutingMap extends Map<RoutingKey, RoutingValue> {
+  constructor() {
+    super();
+
+    const entries: [RoutingKey, RoutingValue][] = [
+      [ 'acme-challenge', false ],
+      [ 'address', '0.0.0.0' ],
+      [ 'cluster', false ],
+      [ 'control-room', false ],
+      [ 'counter', [] ],
+      [ 'cpus', 1 ],
+      [ 'cut-user-agent', false ],
+      [ 'ease', false ],
+      [ 'ease-cluster', false ],
+      [ 'exec', '' ],
+      [ 'hot-routes', false ],
+      [ 'live-reload', false ],
+      [ 'live-reload-conf', new Map() ],
+      [ 'log', false ],
+      [ 'log-color', false ],
+      [ 'log-persistent', false ],
+      [ 'log_worker', undefined ],
+      [ 'multi-domain', new Map() ],
+      [ 'mute-client-error', false ],
+      [ 'port', 3001 ],
+      [ 'redirect', '' ],
+      [ 'redirect-to-https', false ],
+      [ 'response-time', performance.now() ],
+      [ 'routes', new Map() ],
+      [ 'routes-active', false ],
+      [ 'routes-path', path.resolve( process.cwd(), 'routes' ) ],
+      [ 'secure', false ],
+      [ 'served-by', false ],
+      [ 'served-by-name', 'ivy-server' ],
+      [ 'socket', false ],
+      [ 'to-index-html', false ],
+      [ 'virtual-routes', [] ],
+      [ 'www-root', path.resolve( process.cwd(), 'public' ) ],
+    ];
+    for ( const [ key, value ] of entries ) {
+      this.set( key, value );
+    }
+  }
+
+  override get<K extends RoutingKey>( key: K ): RoutingValueMap[K] {
+    return super.get( key )! as RoutingValueMap[K];
+  }
+}
+export type Routing = Map<keyof RoutingValueMap, RoutingValue>;
+export const routing = new RoutingMap();
 
 export async function generate_id(): Promise<string> {
 
