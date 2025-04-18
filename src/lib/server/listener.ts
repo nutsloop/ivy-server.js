@@ -1,3 +1,5 @@
+import * as process from 'node:process';
+
 import type { RequestData, Route } from './routing.js';
 import type { RoutingIncomingMessage } from './routing/routing-incoming-message.js';
 import type { RoutingServerResponse } from './routing/routing-server-response.js';
@@ -22,8 +24,18 @@ export async function listener<K extends RoutingIncomingMessage>( IncomingMessag
     ServerResponse.statusCode = 400;
   }
 
+  if ( typeof IncomingMessage.url !== 'string' ) {
+    ServerResponse.listener_error = true;
+    const message = 'IncomingMessage.url is not a string';
+    const date = new Date().toISOString();
+    process.stderr.write( `${date} ${message}\n` );
+
+    ServerResponse.statusCode = 400;
+  }
+
+  let url = IncomingMessage.url;
   // double slash in the URL is not allowed
-  if( IncomingMessage.url.startsWith( '//' ) ){
+  if( url && url.startsWith( '//' ) ){
 
     ServerResponse.listener_error = true;
     const message = 'Invalid URL with double slash';
@@ -33,9 +45,9 @@ export async function listener<K extends RoutingIncomingMessage>( IncomingMessag
     ServerResponse.statusCode = 400;
   }
 
+  url = IncomingMessage.url || '/';
   const request_host: string = IncomingMessage.headers.host || <string>IncomingMessage.headers[ ':authority' ] || 'UNKNOWN HOST';
   const secure = routing.get( 'secure' );
-  const url = IncomingMessage.url || '/';
   const multi_domain = routing.get( 'multi-domain' );
 
   const is_acme_challenge =
@@ -47,23 +59,25 @@ export async function listener<K extends RoutingIncomingMessage>( IncomingMessag
 
     const white_listed: string[] = [];
     const redirect_to: string[] = [];
-    let domain_config: Domain = undefined;
+    let domain_config: Domain | undefined = undefined;
 
-    if ( multi_domain.size > 0 && ! ServerResponse.listener_error ) {
+    if ( multi_domain && multi_domain.size > 0 && ! ServerResponse.listener_error ) {
 
       for ( const key of multi_domain.keys() ) {
 
         if ( key.includes( request_host ) ) {
           domain_config = multi_domain.get( key );
-          white_listed.push( request_host );
-          if( domain_config.redirect_to.length > 0 ){
-            redirect_to.push( domain_config.redirect_to );
+          if( domain_config ){
+            white_listed.push( request_host );
+            if ( domain_config.redirect_to.length > 0 ) {
+              redirect_to.push( domain_config.redirect_to );
+            }
           }
           break;
         }
       }
 
-      if ( domain_config !== undefined ) {
+      if ( domain_config ) {
         ServerResponse.multi_domain = true;
         let www_root = routing.get( 'www-root' );
         if ( domain_config.www_root.length > 0 ){
@@ -137,8 +151,10 @@ export async function listener<K extends RoutingIncomingMessage>( IncomingMessag
     }
   }
 
-  if( routing.get( 'served-by' ) ){
-    ServerResponse.setHeader( 'served-by', routing.get( 'served-by-name' ) );
+  const served_by = routing.get( 'served-by' );
+  const served_by_name = routing.get( 'served-by-name' );
+  if( served_by && served_by_name ){
+    ServerResponse.setHeader( 'served-by', served_by_name );
   }
 
   const data: RequestData = new Map();
@@ -170,7 +186,7 @@ export async function listener<K extends RoutingIncomingMessage>( IncomingMessag
 
     if ( ! ServerResponse.isRoute ) {
 
-      await ServerResponse.static( IncomingMessage.url.split( '?' )[ 0 ] );
+      await ServerResponse.static( url.split( '?' )[ 0 ] );
     }
   }
 
