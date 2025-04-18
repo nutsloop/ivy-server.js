@@ -1,4 +1,4 @@
-import * as process from 'node:process';
+import { Path } from '@nutsloop/ivy-cross-path';
 
 import type { RequestData, Route } from './routing.js';
 import type { RoutingIncomingMessage } from './routing/routing-incoming-message.js';
@@ -7,12 +7,42 @@ import type { RoutingServerResponse } from './routing/routing-server-response.js
 import { Domain } from './dispacher.js';
 import { routing } from './routing.js';
 
+// experiment
+export type IvyPlugin<K extends RoutingIncomingMessage> = {
+  plugin: true; // Ensure it always indicates a valid plugin
+  entry: ( incoming: RoutingIncomingMessage, response: RoutingServerResponse<K> ) => void | Promise<void>; // Handle asynchronous entries
+};
+
 export async function listener<K extends RoutingIncomingMessage>( IncomingMessage: RoutingIncomingMessage, ServerResponse: RoutingServerResponse<K> ): Promise<void> {
+
+  // experiment
+  if( routing.get( 'plugins' ).length > 0 ){
+
+    const path = new Path();
+    const plugin = routing.get( 'plugins' )[ 0 ];
+
+    let cookie_monster: IvyPlugin<K> | undefined = undefined;
+    try {
+      const plugin_path = path.resolve( process.cwd(), 'node_modules', `@nutsloop/ivy-${plugin}`, 'index.js' );
+      cookie_monster = await import( plugin_path );
+      if( cookie_monster?.plugin && cookie_monster?.entry && typeof cookie_monster.entry === 'function' ){
+        cookie_monster.entry( IncomingMessage, ServerResponse );
+      }
+      else{
+        console.log( cookie_monster );
+        console.error( 'Plugin is not a valid Ivy plugin' );
+      }
+    }
+    catch ( error ) {
+      console.error( `Failed to load plugin '@nutsloop/ivy-${plugin}':`, error );
+    }
+
+  }
 
   // reset the errors
   ServerResponse.incoming.set( 'error', [] );
   ServerResponse.incoming.set( 'data-error', '' );
-  ServerResponse.incoming.set( 'raw-headers', IncomingMessage.headers );
+  ServerResponse.incoming.set( 'raw-headers', routing.get( 'log-request-headers' ) ? IncomingMessage.headers : {} );
 
   // fix: in some cases the IncomingMessage is not a valid object or it is undefined.
   if( ! IncomingMessage ){
