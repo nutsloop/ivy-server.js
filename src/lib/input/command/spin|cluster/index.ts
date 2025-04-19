@@ -12,6 +12,7 @@ import { exec_cb } from './flag/exec/cb.js';
 import { hot_routes_cb } from './flag/hot-routes/cb.js';
 import { https_cb } from './flag/https/cb.js';
 import { live_reload_cb } from './flag/live-reload/cb.js';
+import { log_request_headers_cb } from './flag/log_request_headers/cb.js';
 import { log_color_cb } from './flag/log-color/cb.js';
 import { log_persistent_cb } from './flag/log-persistent/cb.js';
 import { log_cb } from './flag/log/cb.js';
@@ -30,7 +31,7 @@ import {
   cluster_cpus_description,
   cluster_cpus_usage,
   cluster_exec_description,
-  cluster_exec_usage,
+  cluster_exec_usage, spin_cluster_acme_challenge_description, spin_cluster_acme_challenge_usage,
   spin_cluster_address_description,
   spin_cluster_address_usage,
   spin_cluster_control_room_description,
@@ -47,10 +48,14 @@ import {
   spin_cluster_log_color_usage,
   spin_cluster_log_description,
   spin_cluster_log_persistent_description,
-  spin_cluster_log_persistent_usage,
+  spin_cluster_log_persistent_usage, spin_cluster_log_request_headers_usage,
   spin_cluster_log_usage,
+  spin_cluster_multi_domain_description, spin_cluster_multi_domain_usage, spin_cluster_mute_client_error_description, spin_cluster_mute_client_error_usage,
   spin_cluster_port_description,
   spin_cluster_port_usage,
+  spin_cluster_redirect_to_description, spin_cluster_redirect_to_https_description,
+  spin_cluster_redirect_to_https_usage,
+  spin_cluster_redirect_to_usage,
   spin_cluster_routes_description,
   spin_cluster_routes_usage,
   spin_cluster_served_by_description,
@@ -70,6 +75,7 @@ export async function spin_cluster(){
 
   const invoked_command = command_call.values().next().value;
 
+  // commands spin|cluster
   await command( [ 'spin', 'cluster' ], {
     cb: spin_cluster_cb,
     description: spin_cluster_description,
@@ -78,30 +84,22 @@ export async function spin_cluster(){
     usage: spin_cluster_usage
   } );
 
-  await flag( '--socket', {
-    alias: 'socket',
-    cb: {
-      fn: socket_cb,
-      type: 'async'
-    },
-    description: spin_cluster_socket_description,
-    is_flag_of: [ 'spin', 'cluster' ],
-    multi_type: [ 'number', 'void' ],
-    usage: spin_cluster_socket_usage
-  } );
+  // spin|cluster flags
 
-  await flag( [ '--port', '-p' ], {
-    alias: 'port',
-    cb: {
-      fn: port_cb,
+  // --acme-challenge[-ac] flag
+  await flag( [ '--acme-challenge', '-ac' ], {
+    alias: 'acme-challenge',
+    cb:{
+      fn: acme_challenge_cb,
       type: 'sync'
     },
-    description: spin_cluster_port_description,
+    description: spin_cluster_acme_challenge_description,
     is_flag_of: [ 'spin', 'cluster' ],
-    type: 'number',
-    usage: spin_cluster_port_usage
+    usage: spin_cluster_acme_challenge_usage,
+    void: true
   } );
 
+  // --address[-a]
   await flag( [ '--address', '-a' ], {
     alias: 'address',
     cb: {
@@ -114,7 +112,47 @@ export async function spin_cluster(){
     usage: spin_cluster_address_usage
   } );
 
-  await flag( '--https', {
+  // --control-room[-cr]
+  await flag( [ '--control-room', '-cr' ], {
+    alias: 'control-room',
+    cb: {
+      fn: control_room_cb,
+      type: 'async'
+    },
+    description: spin_cluster_control_room_description,
+    is_flag_of: [ 'spin', 'cluster' ],
+    usage: spin_cluster_control_room_usage,
+    void: true
+  } );
+
+  // --cut-user-agent[-cua]
+  await flag( [ '--cut-user-agent', '-cua' ], {
+    alias: 'cut-user-agent',
+    cb: {
+      fn: cut_user_agent_cb,
+      type: 'sync'
+    },
+    description: spin_cluster_cut_user_agent_description,
+    is_flag_of: [ 'spin', 'cluster' ],
+    usage: spin_cluster_cut_user_agent_usage,
+    void: true
+  } );
+
+  // --hot-routes[-hr]
+  await flag( [ '--hot-routes', '-hr' ], {
+    alias: 'hot-routes',
+    cb: {
+      fn: hot_routes_cb,
+      type: 'sync'
+    },
+    description: spin_cluster_hot_routes_description,
+    is_flag_of: [ 'spin', 'cluster' ],
+    usage: spin_cluster_hot_routes_usage,
+    void: true
+  } );
+
+  // --https[-S]
+  await flag( [ '--https', '-S' ], {
     alias: 'https',
     cb: {
       fn: https_cb,
@@ -127,195 +165,8 @@ export async function spin_cluster(){
     usage: spin_cluster_https_usage
   } );
 
-  await flag( '--www-root', {
-    alias: 'www-root',
-    cb: {
-      fn: www_root_cb,
-      type: 'async'
-    },
-    description: spin_cluster_www_root_description,
-    is_flag_of: [ 'spin', 'cluster' ],
-    type: 'string',
-    usage: spin_cluster_www_root_usage
-  } );
-
-  await flag( '--acme-challenge', {
-    alias: 'acme-challenge',
-    cb:{
-      fn: acme_challenge_cb,
-      type: 'sync'
-    },
-    description: 'tells the server to serve the ACME challenge files without follow multi-domain config or global redirect to https.',
-    is_flag_of: [ 'spin', 'cluster' ],
-    usage: 'ivy-server spin|cluster --acme-challenge',
-    void: true
-  } );
-
-  await flag( '--mute-client-error', {
-    alias: 'mute-client-error',
-    cb:{
-      fn: mute_client_error_cb,
-      type: 'sync'
-    },
-    description: 'it mutes the client error listener by only not printing the error to the console.',
-    is_flag_of: [ 'spin', 'cluster' ],
-    usage: 'ivy-server spin|cluster --mute-client-error',
-    void: true
-  } );
-
-  await flag( '--log', {
-    alias: 'log',
-    cb: {
-      fn: log_cb,
-      type: 'sync'
-    },
-    description: spin_cluster_log_description,
-    is_flag_of: [ 'spin', 'cluster' ],
-    usage: spin_cluster_log_usage,
-    void: true
-  } );
-
-  await flag( '--log-color', {
-    alias: 'log-color',
-    cb: {
-      fn: log_color_cb,
-      type: 'sync'
-    },
-    depends_on: [ '--log|--log-all' ],
-    description: spin_cluster_log_color_description,
-    is_flag_of: [ 'spin', 'cluster' ],
-    usage: spin_cluster_log_color_usage,
-    void: true
-  } );
-
-  await flag( '--redirect-to', {
-    alias: 'redirect-to',
-    cb:{
-      fn: redirect_to_cb,
-      type: 'sync'
-    },
-    description: 'Redirect to a different URL (301 Moved Permanently)',
-    is_flag_of: [ 'spin', 'cluster' ],
-    type: 'string',
-    usage: 'ivy-server spin|cluster --redirect-to=https://www.domain.com',
-  } );
-
-  await flag( '--redirect-to-https', {
-    alias: 'redirect-to-https',
-    cb:{
-      fn: redirect_to_https_cb,
-      type: 'sync'
-    },
-    description: 'Redirect to https, requires --redirect-to',
-    depends_on: [ '--redirect-to' ],
-    has_conflict: [ '--https' ],
-    is_flag_of: [ 'spin', 'cluster' ],
-    void: true,
-    usage: 'ivy-server spin|cluster --redirect-to=https://www.domain.com --redirect-to-https',
-  } );
-
-  await flag( '--log-persistent', {
-    alias: 'log-persistent',
-    cb: {
-      fn: log_persistent_cb,
-      type: 'async'
-    },
-    depends_on: [ '--log' ],
-    description: spin_cluster_log_persistent_description,
-    has_conflict: [ '--log-all' ],
-    is_flag_of: [ 'spin', 'cluster' ],
-    multi_type: [ 'void', 'number' ],
-    usage: spin_cluster_log_persistent_usage
-  } );
-
-  await flag( '--cut-user-agent', {
-    alias: 'cut-user-agent',
-    cb: {
-      fn: cut_user_agent_cb,
-      type: 'sync'
-    },
-    description: spin_cluster_cut_user_agent_description,
-    is_flag_of: [ 'spin', 'cluster' ],
-    usage: spin_cluster_cut_user_agent_usage,
-    void: true
-  } );
-
-  await flag( '--routes', {
-    alias: 'routes',
-    cb: {
-      fn: routes_cb,
-      type: 'async'
-    },
-    description: spin_cluster_routes_description,
-    is_flag_of: [ 'spin', 'cluster' ],
-    multi_type: [ 'void', 'string', 'kvp' ],
-    precedence: 1,
-    usage: spin_cluster_routes_usage
-  } );
-
-  await flag( '--hot-routes', {
-    alias: 'hot-routes',
-    cb: {
-      fn: hot_routes_cb,
-      type: 'sync'
-    },
-    description: spin_cluster_hot_routes_description,
-    is_flag_of: [ 'spin', 'cluster' ],
-    usage: spin_cluster_hot_routes_usage,
-    void: true
-  } );
-
-  await flag( '--virtual-routes', {
-    alias: 'virtual-routes',
-    cb: {
-      fn: virtual_routes_cb,
-      type: 'async'
-    },
-    depends_on: [ '--to-index-html' ],
-    description: spin_cluster_virtual_routes_description,
-    is_flag_of: [ 'spin', 'cluster' ],
-    multi_type: [ 'void', 'string' ],
-    usage: spin_cluster_virtual_routes_usage
-  } );
-
-  await flag( '--to-index-html', {
-    alias: 'to-index-html',
-    cb: {
-      fn: to_index_html_cb,
-      type: 'async'
-    },
-    description: spin_cluster_to_index_html_description,
-    is_flag_of: [ 'spin', 'cluster' ],
-    precedence: 1,
-    usage: spin_cluster_to_index_html_usage,
-    void: true
-  } );
-
-  await flag( '--control-room', {
-    alias: 'control-room',
-    cb: {
-      fn: control_room_cb,
-      type: 'async'
-    },
-    description: spin_cluster_control_room_description,
-    is_flag_of: [ 'spin', 'cluster' ],
-    usage: spin_cluster_control_room_usage,
-    void: true
-  } );
-
-  await flag( '--served-by', {
-    alias: 'served-by',
-    cb: {
-      fn: served_by_cb,
-      type: 'async'
-    },
-    description: spin_cluster_served_by_description,
-    is_flag_of: [ 'spin', 'cluster' ],
-    type: 'string',
-    usage: spin_cluster_served_by_usage
-  } );
-
-  await flag( '--live-reload', {
+  // --live-reload[-lr]
+  await flag( [ '--live-reload', '-lr' ], {
     alias: 'live-reload',
     cb: {
       fn: live_reload_cb,
@@ -328,21 +179,219 @@ export async function spin_cluster(){
     usage: spin_cluster_live_reload_usage,
   } );
 
-  await flag( '--multi-domain', {
+  // --log[-l]
+  await flag( [ '--log', '-l' ], {
+    alias: 'log',
+    cb: {
+      fn: log_cb,
+      type: 'sync'
+    },
+    description: spin_cluster_log_description,
+    is_flag_of: [ 'spin', 'cluster' ],
+    usage: spin_cluster_log_usage,
+    void: true
+  } );
+
+  // --log-color[-lc]
+  await flag( [ '--log-color', '-lc' ], {
+    alias: 'log-color',
+    cb: {
+      fn: log_color_cb,
+      type: 'sync'
+    },
+    depends_on: [ '--log|-l' ],
+    description: spin_cluster_log_color_description,
+    is_flag_of: [ 'spin', 'cluster' ],
+    usage: spin_cluster_log_color_usage,
+    void: true
+  } );
+
+  // --log-persistent[-lp]
+  await flag( [ '--log-persistent', '-lp' ], {
+    alias: 'log-persistent',
+    cb: {
+      fn: log_persistent_cb,
+      type: 'async'
+    },
+    // TODO: this may be removed in the future.
+    depends_on: [ '--log|-l' ],
+    description: spin_cluster_log_persistent_description,
+    is_flag_of: [ 'spin', 'cluster' ],
+    multi_type: [ 'void', 'number' ],
+    usage: spin_cluster_log_persistent_usage
+  } );
+
+  // --log-request-headers[-lrh]
+  await flag( [ '--log-request-headers', '-lrh' ], {
+    alias: 'log-request-header',
+    cb: {
+      fn: log_request_headers_cb,
+      type: 'sync'
+    },
+    void: true,
+    usage: spin_cluster_log_request_headers_usage,
+    description: spin_cluster_log_request_headers_usage,
+    depends_on: [ '--log|-l' ],
+    is_flag_of: [ 'spin', 'cluster' ],
+  } );
+
+  // --multi-domain[-md]
+  await flag( [ '--multi-domain', '-md' ], {
     alias: 'multi-domain',
     cb: {
       fn: multi_domain_cb,
       type: 'async'
     },
     precedence: 10,
-    description: `serve multiple domains from a single server instance`,
+    description: spin_cluster_multi_domain_description,
     is_flag_of: [ 'spin', 'cluster' ],
     multi_type: [ 'void', 'string' ],
-    usage: `ivy-server spin|cluster --multi-domain=path/to/domain/multiDomainConfig.js`
+    usage: spin_cluster_multi_domain_usage,
+  } );
+
+  // --mute-client-error[-mce]
+  await flag( [ '--mute-client-error', '-mce' ], {
+    alias: 'mute-client-error',
+    cb:{
+      fn: mute_client_error_cb,
+      type: 'sync'
+    },
+    description: spin_cluster_mute_client_error_description,
+    is_flag_of: [ 'spin', 'cluster' ],
+    usage: spin_cluster_mute_client_error_usage,
+    void: true
+  } );
+
+
+  // --plugins[-P]
+
+
+  // --port[-p]
+  await flag( [ '--port', '-p' ], {
+    alias: 'port',
+    cb: {
+      fn: port_cb,
+      type: 'sync'
+    },
+    description: spin_cluster_port_description,
+    is_flag_of: [ 'spin', 'cluster' ],
+    type: 'number',
+    usage: spin_cluster_port_usage
+  } );
+
+  // --redirect-to[-rt]
+  await flag( [ '--redirect-to', '-rt' ], {
+    alias: 'redirect-to',
+    cb:{
+      fn: redirect_to_cb,
+      type: 'sync'
+    },
+    description: spin_cluster_redirect_to_description,
+    is_flag_of: [ 'spin', 'cluster' ],
+    type: 'string',
+    usage: spin_cluster_redirect_to_usage,
+  } );
+
+  // --redirect-to-https[-rth]
+  await flag( [ '--redirect-to-https', '-rth' ], {
+    alias: 'redirect-to-https',
+    cb:{
+      fn: redirect_to_https_cb,
+      type: 'sync'
+    },
+    description: spin_cluster_redirect_to_https_description,
+    depends_on: [ '--redirect-to|-rt' ],
+    has_conflict: [ '--https' ],
+    is_flag_of: [ 'spin', 'cluster' ],
+    void: true,
+    usage: spin_cluster_redirect_to_https_usage,
+  } );
+
+  // --routes[-r]
+  await flag( [ '--routes', '-r' ], {
+    alias: 'routes',
+    cb: {
+      fn: routes_cb,
+      type: 'async'
+    },
+    description: spin_cluster_routes_description,
+    is_flag_of: [ 'spin', 'cluster' ],
+    multi_type: [ 'void', 'string', 'kvp' ],
+    precedence: 1,
+    usage: spin_cluster_routes_usage
+  } );
+
+  // --served-by[-sb]
+  await flag( [ '--served-by', '-sb' ], {
+    alias: 'served-by',
+    cb: {
+      fn: served_by_cb,
+      type: 'async'
+    },
+    description: spin_cluster_served_by_description,
+    is_flag_of: [ 'spin', 'cluster' ],
+    type: 'string',
+    usage: spin_cluster_served_by_usage
+  } );
+
+  // --socket[-s]
+  await flag( [ '--socket', '-s' ], {
+    alias: 'socket',
+    cb: {
+      fn: socket_cb,
+      type: 'async'
+    },
+    description: spin_cluster_socket_description,
+    is_flag_of: [ 'spin', 'cluster' ],
+    multi_type: [ 'number', 'void' ],
+    usage: spin_cluster_socket_usage
+  } );
+
+  // --to-index-html[-tih]
+  await flag( [ '--to-index-html', '-tih' ], {
+    alias: 'to-index-html',
+    cb: {
+      fn: to_index_html_cb,
+      type: 'async'
+    },
+    description: spin_cluster_to_index_html_description,
+    is_flag_of: [ 'spin', 'cluster' ],
+    precedence: 1,
+    usage: spin_cluster_to_index_html_usage,
+    void: true
+  } );
+
+  // --virtual-routes[-vr]
+  await flag( [ '--virtual-routes', '-vr' ], {
+    alias: 'virtual-routes',
+    cb: {
+      fn: virtual_routes_cb,
+      type: 'async'
+    },
+    depends_on: [ '--to-index-html|-tih' ],
+    description: spin_cluster_virtual_routes_description,
+    is_flag_of: [ 'spin', 'cluster' ],
+    multi_type: [ 'void', 'string' ],
+    usage: spin_cluster_virtual_routes_usage
+  } );
+
+  // --www-root[-wr]
+  await flag( [ '--www-root', '-wr' ], {
+    alias: 'www-root',
+    cb: {
+      fn: www_root_cb,
+      type: 'async'
+    },
+    description: spin_cluster_www_root_description,
+    is_flag_of: [ 'spin', 'cluster' ],
+    type: 'string',
+    usage: spin_cluster_www_root_usage
   } );
 
   // cluster only flags
-  await flag( '--cpus', {
+
+  // --cpus[-c]
+  await flag( [ '--cpus', '-c' ], {
     alias: 'cpus',
     cb: {
       fn: cpus_cb,
@@ -354,7 +403,8 @@ export async function spin_cluster(){
     usage: cluster_cpus_usage
   } );
 
-  await flag( '--exec', {
+  // --exec[-e]
+  await flag( [ '--exec', '-e' ], {
     alias: 'exec',
     cb: {
       fn: exec_cb,
@@ -367,7 +417,7 @@ export async function spin_cluster(){
   } );
 
   // experimentation
-  await flag( '--plugins', {
+  await flag( [ '--plugins', '-P' ], {
     alias: 'plugins',
     cb: {
       fn: ( data: string[] ) => {
@@ -380,21 +430,6 @@ export async function spin_cluster(){
     type: 'array',
     usage: 'ivy-server spin|cluster --plugins=cookie-monster,request-limiter',
     description: 'a comma separated list of @nutsloop/ivy-[plugin-name] packages. no need to prefix with `@nutsloop/ivy-`.\ninstall them first as dependencies of your project.',
-    is_flag_of: [ 'spin', 'cluster' ],
-  } );
-
-  await flag( '--log-request-headers', {
-    alias: 'log-request-header',
-    cb: {
-      fn: () => {
-        routing.set( 'log-request-headers', true );
-      },
-      type: 'sync'
-    },
-    void: true,
-    usage: 'ivy-server spin|cluster --log --log-request-headers',
-    description: 'log the request.headers',
-    depends_on: [ 'log' ],
     is_flag_of: [ 'spin', 'cluster' ],
   } );
 }
