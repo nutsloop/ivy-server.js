@@ -11,11 +11,10 @@ extends_proto();
  * Abstraction layer Type of the cli commands|options server.
  */
 export type CreateServerOptions =
-  Map<'address' | 'exec' | 'redirect' | 'served-by' | 'www-root', string> &
+  Map<'address' | 'exec' | 'redirect-to' | 'served-by' | 'www-root', string> &
   Map<'command', 'cluster' | 'spin'> &
   Map<
     'acme-challenge' |
-    'mute-client-error' |
     'control-room' |
     'cut-user-agent' |
     'ease' |
@@ -23,41 +22,43 @@ export type CreateServerOptions =
     'hot-routes' |
     'log' |
     'log-color' |
+    'log-request-headers' |
+    'mute-client-error' |
     'redirect-to-https' |
     'to-index-html', null> &
   Map<'cpus' | 'port', number> &
   Map<'https' | 'live-reload' | 'multi-domain' | 'vroutes', null | string> &
   Map<'log-persistent' | 'socket', null | number> &
+  Map<'plugins', string[]> &
   Map<'routes', Map<string, string> | null | string>;
 
 type IteratorArgv = IterableIterator<
   [
-      | 'address'
-      | 'exec'
-      | 'redirect'
-      | 'served-by'
-      | 'www-root'
-      | 'command'
       | 'acme-challenge'
-      | 'mute-client-error'
+      | 'address'
       | 'control-room'
-      | 'cut-user-agent'
-      | 'ease'
-      | 'ease-cluster'
-      | 'hot-routes'
-      | 'log'
-      | 'log-color'
-      | 'redirect-to-https'
-      | 'to-index-html'
       | 'cpus'
-      | 'port'
+      | 'cut-user-agent'
+      | 'exec'
+      | 'hot-routes'
       | 'https'
       | 'live-reload'
-      | 'multi-domain'
-      | 'vroutes'
+      | 'log'
+      | 'log-color'
       | 'log-persistent'
+      | 'log-request-headers'
+      | 'multi-domain'
+      | 'mute-client-error'
+      | 'plugins'
+      | 'port'
+      | 'redirect-to'
+      | 'redirect-to-https'
+      | 'routes'
+      | 'served-by'
       | 'socket'
-      | 'routes',
+      | 'to-index-html'
+      | 'virtual-routes'
+      | 'www-root',
       null | number | string | Map<string, string>
   ]
 >;
