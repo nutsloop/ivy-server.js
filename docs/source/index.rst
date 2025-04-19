@@ -17,22 +17,21 @@ Welcome to the official documentation for ``@nutsloop/ivy-server`` — a multi-f
 What is Ivy Server?
 -------------------
 
-``@nutsloop/ivy-server`` is a powerful, flexible command-line server designed for modern dev workflows.
+``@nutsloop/ivy-server`` is a modern, powerful, TypeScript-powered command-line server. With a rust-native file watcher at its core, it enhances developer workflows with features like:
 
-- ⚙️  Hot-reload file watching (powered by Rust)
-- 🛰️  Static & dynamic content serving
+- ⚙️  Live browser reloading on file changes (powered by Rust) for instant feedback and seamless development
+- 🛰️  Static and dynamic content serving
 - 🔁  Built-in route support
 - 🧪  Zero-config developer experience
-- 🧩  Extensive CLI flags for customization
+- 🧩  Extensive CLI customisation through flags
+- 🛠️  Experimental `control room` for remote management, audit via secure sockets (work in progress)
+- 🌐  Multi-domain support — Serve content across multiple domains with ease!
 
 Common uses include:
 
-- Local development servers
-- Static file hosting
-- API
-- Multi Domain server
-- Experimental workflows
-- A potential `control room` for remote management through secure socket connection.
+ - ⚡️  Local development servers for fast feedback loops
+ - 🌐  Lightweight APIs and microservices
+ - 🧪  Experimental workflows and prototyping
 
 Quick Start
 -----------
@@ -40,12 +39,11 @@ Quick Start
 Installation
 ============
 
-Install via npm:
 .. important::
 
    ``@nutsloop/ivy-server`` runs **only on Unix-like systems** (macOS, Linux). Windows is currently **not supported**.
-
-   It also requires **Node.js v20 or higher**.
+   -  `Rust <https://www.rust-lang.org/tools/install>`__ >= 1.55.0
+   -  `Node.js <https://nodejs.org/>`__ >= 20.0.0
 
 .. code-block:: bash
 

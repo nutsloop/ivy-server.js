@@ -23,20 +23,24 @@ Global flags must always appear **before** the command.
 
 .. list-table::
    :header-rows: 1
-   :widths: 25 75
+   :widths: 40 7 53
 
    * - Flag
+     - Type
      - Description
-   * - ``--ease``
-     - Allows binding to ports below 1024.
-   * - ``--ease-cluster``
-     - Loosens cluster CPU restrictions (uses all CPUs).
+   * - ``--ease``, ``-e``
+     - void
+     - Allows binding to ports below 1024 (note: system-level restrictions may still apply).
+   * - ``--ease-cluster``, ``-ec``
+     - void
+     - Removes cluster CPU limits — allows forking **any number** of workers. By default, forks half the available CPUs unless a specific number is provided.
 
 Example:
 
 .. code-block:: bash
 
-   ivy-server --ease spin --port=80
+   # let’s assume the server has 8 CPUs available and system-level port restrictions have been eased.
+   ivy-server --ease --ease-cluster cluster --port=80 --cpus=32
 
 
 Commands
@@ -49,7 +53,7 @@ Run a single server instance.
 
 .. code-block:: bash
 
-   ivy-server spin [options]
+   ivy-server spin
 
 cluster
 -------
@@ -58,7 +62,8 @@ Run multiple server instances using Node's cluster module.
 
 .. code-block:: bash
 
-   ivy-server cluster [options]
+   # this will fork for the half of the available cpus
+   ivy-server cluster
 
 Common Flags (spin & cluster)
 -----------------------------
@@ -67,68 +72,80 @@ These flags are shared across both ``spin`` and ``cluster``.
 
 .. list-table::
    :header-rows: 1
-   :widths: 25 15 60
+   :widths: 40 7 53
 
    * - Flag
      - Type
      - Description
-   * - ``--socket[=number|void]``
-     - optional
-     - Enable socket/tls connection (requires ``socketConfig.js``).
-   * - ``--port``, ``-p``
-     - number
-     - Port to run the server on.
+   * - ``--acme-challenge``, ``-ac``
+     - void
+     - Serve ACME challenge files (skips redirects/multidomain).
    * - ``--address``, ``-a``
      - string
      - Address to bind.
-   * - ``--https[=void|kvp]``
-     - optional
-     - Enable HTTPS.
-   * - ``--www-root``
-     - string
-     - Directory for static content.
-   * - ``--acme-challenge``
-     - void
-     - Serve ACME challenge files (skips redirects/multidomain).
-   * - ``--mute-client-error``
-     - void
-     - Suppress client error logs.
-   * - ``--log``
-     - void
-     - Enable request logging.
-   * - ``--log-color``
-     - void
-     - Colorize log output (requires ``--log``).
-   * - ``--log-persistent``
-     - void/number
-     - Persist logs via file/db (requires ``logConfig.js``).
-   * - ``--cut-user-agent``
-     - void
-     - Hide user-agent in logs.
-   * - ``--routes``
-     - mixed
-     - Enable route handling.
-   * - ``--hot-routes``
-     - void
-     - Enable hot reloading of routes.
-   * - ``--virtual-routes``
-     - string
-     - Declare 200-style fallback routes (needs ``--to-index-html``).
-   * - ``--to-index-html``
-     - void
-     - Route all unmatched requests to ``index.html``.
-   * - ``--control-room``
+   * - ``--control-room``, ``-cr``
      - void
      - Open socket for stats/control panel.
-   * - ``--served-by``
-     - string
-     - Set ``served-by`` HTTP header.
-   * - ``--live-reload``
+   * - ``--cut-user-agent``, ``-cua``
+     - void
+     - Hide user-agent in logs.
+   * - ``--hot-routes``, ``-hr``
+     - void
+     - Enable hot reloading of routes.
+   * - ``--https``, ``-S``
+     - void/kvp
+     - Enable HTTPS.
+   * - ``--live-reload``, ``-lr``
      - void/kvp
      - Enable live reload on file changes.
-   * - ``--multi-domain``
+   * - ``--log``, ``-l``
+     - void
+     - Enable request logging.
+   * - ``--log-color``, ``-lc``
+     - void
+     - Colorize log output (requires ``--log``).
+   * - ``--log-persistent``, ``-lp``
+     - void/number
+     - Persist logs via file/db (requires ``logConfig.js``).
+   * - ``--log-request-headers``, ``-lrh``
+     - void
+     - Log request headers (requires ``--log``).
+   * - ``--multi-domain``, ``-md``
      - string
      - Load multidomain config from file.
+   * - ``--mute-client-error``, ``-mce``
+     - void
+     - Suppress client error logs.
+   * - ``--plugins``, ``-P``
+     - array
+     - Comma-separated list of plugin names (no prefix needed).
+   * - ``--port``, ``-p``
+     - number
+     - Port to run the server on.
+   * - ``--redirect-to``, ``-rt``
+     - string
+     - Redirect to a different URL (301 Moved Permanently).
+   * - ``--redirect-to-https``, ``-rth``
+     - void
+     - Redirect to HTTPS (requires ``--redirect-to``).
+   * - ``--routes``, ``-r``
+     - mixed
+     - Enable route handling.
+   * - ``--served-by``, ``-sb``
+     - string
+     - Set ``served-by`` HTTP header.
+   * - ``--socket``, ``-s``
+     - number/void
+     - Enable socket/tls connection (requires ``socketConfig.js``).
+   * - ``--to-index-html``, ``-tih``
+     - void
+     - Route all the requests to ``index.html``.
+   * - ``--virtual-routes``, ``-vr``
+     - string
+     - Declare STATUS_CODE 200 for addresses (used with `--to-index-html`).
+   * - ``--www-root``, ``-wr``
+     - string
+     - Directory for static content.
 
 Cluster-Specific Flags
 ----------------------
@@ -137,17 +154,17 @@ These flags apply only when using the ``cluster`` command.
 
 .. list-table::
    :header-rows: 1
-   :widths: 25 15 60
+   :widths: 30 15 55
 
    * - Flag
      - Type
      - Description
-   * - ``--cpus``
-     - number
-     - Number of CPUs to utilize.
-   * - ``--exec``
+   * - ``--cpus``, ``-c``
+     - number | void
+     - Number of CPUs to utilize (restricted to the number of CPUs available). if void it will fork for the half of the available CPUs
+   * - ``--exec``, ``-e``
      - string
-     - Path to entry file to execute in cluster.
+     - Path to an entry file to execute in cluster.
 
 .. _--exec:
 

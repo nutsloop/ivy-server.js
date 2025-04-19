@@ -10,8 +10,8 @@ import os
 project = 'nutsloop::ivy-server'
 copyright = '2025, nutsloop, Simone Del Popolo'
 author = 'nutsloop, Simone Del Popolo'
-release = '1.3.0-alpha.8'  # Full version, including alpha/beta tags
-version = '1.3.0'        # Short version (e.g., for stable tags)
+release = '1.7.1-alpha.0'  # Full version, including alpha/beta tags
+version = '1.7.1-alpha.0'        # Short version (e.g., for stable tags)
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
