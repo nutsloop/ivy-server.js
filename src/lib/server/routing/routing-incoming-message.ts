@@ -87,7 +87,7 @@ export class RoutingIncomingMessage
 
   async #route(): Promise< ( ImportedRoute|Route )| boolean | undefined> {
 
-    if ( this.routes.get( this.#url_sanitized ) ) {
+    if ( this.routes.has( this.#url_sanitized ) ) {
 
       return this.routes.get( this.#url_sanitized );
     }
@@ -181,9 +181,9 @@ export class RoutingIncomingMessage
       return;
     }
 
-    if( this.#url_search_params_internal && this.method ) {
+    if( this.method ) {
 
-      if ( this.#url_search_params_internal.size > 0 && module_exports.includes( 'get' ) && this.method === 'GET' ) {
+      if ( this.#url_search_params_internal && this.#url_search_params_internal.size > 0 && module_exports.includes( 'get' ) && this.method === 'GET' ) {
 
         this.route_module = module.get as Route;
       }
