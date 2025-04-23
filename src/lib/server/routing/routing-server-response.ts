@@ -255,6 +255,13 @@ export class RoutingServerResponse<K extends RoutingIncomingMessage>
       message.push( `${this.incoming.get( 'error' ).join( ', ' )}` );
     }
 
+    // HINT to be implemented in a different way
+    if( routing.get( 'socket' ) ){
+      if( process.send ){
+        process.send( { socket_log: message } );
+      }
+    }
+
     if( ! routing.get( 'cluster' ) ){
       const logWorker = routing.get( 'log_worker' );
       if ( logWorker ) {

@@ -1,8 +1,8 @@
 #!/usr/bin/env -S node
-
 import { extends_proto } from '@nutsloop/ivy-ansi';
 import cluster from 'node:cluster';
-import { Socket } from 'node:net';
+import { createServer as createServerSock, type Socket } from 'node:net';
+import { createServer as createServerTLS, type TLSSocket } from 'node:tls';
 
 import { SocketConfig } from '../socket.js';
 
@@ -49,6 +49,8 @@ else if( ! exportedModule.includes( 'default' ) ){
 const control_room = process.argv[ 1 ] === 'true';
 
 // if control room is enabled
+// HINT: the control room is not implemented as is supposed to be.
+//       it is just a proof of concept.
 if( control_room ){
 
   // ping control room socket every second
@@ -72,39 +74,58 @@ if( control_room ){
 }
 
 const socketConfig: SocketConfig = config.default;
-
 if( socketConfig.type === 'tls' ){
 
-  const createServer = await import( 'node:tls' ).then( module => module.createServer );
-  const socket = createServer( {
+  const clients: TLSSocket[] = [];
+  const server = createServerTLS( {
     keepAlive: true,
     ...socketConfig.socketOptions || {}
   }, socketConfig.listener );
 
-  socket.listen( socketConfig.port, socketConfig.hostname, listeningListener );
+  server.listen( socketConfig.port, socketConfig.hostname, listening_on );
 
-  socket.on( 'error', ( error ) => {
+  server.on( 'connection', ( socket: TLSSocket ) => {
+    clients.push( socket );
+    socket.on( 'close', () => {
+      const index = clients.indexOf( socket );
+      if ( index !== - 1 ) {
+        clients.splice( index, 1 );
+      }
+    } );
+  } );
+
+  server.on( 'error', ( error ) => {
     process.stderr.write( error.message );
     process.exit( 1 );
   } );
 }
 else if( socketConfig.type === 'sock' ){
 
-  const createServer = await import( 'node:net' ).then( module => module.createServer );
-  const socket = createServer( {
+  const clients: Socket[] = [];
+  const server = createServerSock( {
     keepAlive: true,
     ...socketConfig.socketOptions || {}
   }, socketConfig.listener as ( socket: Socket ) => void );
 
-  socket.listen( socketConfig.socketPath || `${process.cwd()}/ivy.sock`, listeningListener );
+  server.listen( socketConfig.socketPath || `${process.cwd()}/ivy.sock`, listening_on );
 
-  socket.on( 'error', ( error ) => {
+  server.on( 'connection', ( socket: Socket ) => {
+    clients.push( socket );
+    socket.on( 'close', () => {
+      const index = clients.indexOf( socket );
+      if ( index !== - 1 ) {
+        clients.splice( index, 1 );
+      }
+    } );
+  } );
+
+  server.on( 'error', ( error ) => {
     process.stderr.write( error.message );
     process.exit( 1 );
   } );
 }
 
-function listeningListener(){
+function listening_on(){
 
   const pid = worker.process.pid;
   const id = worker.id;

@@ -343,7 +343,7 @@ export async function spin_cluster(){
     },
     description: spin_cluster_socket_description,
     is_flag_of: [ 'spin', 'cluster' ],
-    multi_type: [ 'number', 'void' ],
+    void: true,
     usage: spin_cluster_socket_usage
   } );
 

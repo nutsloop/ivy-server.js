@@ -73,7 +73,9 @@ export type RoutingKey =
   | 'secure'
   | 'served-by'
   | 'served-by-name'
+  | 'server-workers'
   | 'socket'
+  | 'socket-worker'
   | 'to-index-html'
   | 'virtual-routes'
   | 'www-root';
@@ -110,7 +112,9 @@ export type RoutingValueMap = {
   'secure': boolean;
   'served-by': boolean;
   'served-by-name': string;
+  'server-workers': Map<number, Worker> | undefined;
   'socket': boolean;
+  'socket-worker': Worker | undefined;
   'to-index-html': boolean;
   'virtual-routes': string[];
   'www-root': string;
@@ -154,7 +158,9 @@ export class RoutingMap extends Map<RoutingKey, RoutingValue> {
       [ 'secure', false ],
       [ 'served-by', false ],
       [ 'served-by-name', 'ivy-server' ],
+      [ 'server-workers', undefined ],
       [ 'socket', false ],
+      [ 'socket-worker', undefined ],
       [ 'to-index-html', false ],
       [ 'virtual-routes', [] ],
       [ 'www-root', path.resolve( process.cwd(), 'public' ) ],

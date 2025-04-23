@@ -37,7 +37,7 @@ export const spin_cluster_cb: CallBackAsync<SpinClusterData, [spin:boolean]> = a
   await spawn_live_reload_wrk( routing.get( 'live-reload' ), data.get( 'live-reload' ) );
   await spawn_control_room( data.has( 'control-room' ) );
   await spawn_log_persistent( data.has( 'log-persistent' ), data.get( 'log-persistent' ) );
-  await spawn_socket( data.has( 'socket' ), data.get( 'socket' ) );
+  await spawn_socket( data.has( 'socket' ) );
 
   if( spin ){
 
@@ -50,6 +50,7 @@ export const spin_cluster_cb: CallBackAsync<SpinClusterData, [spin:boolean]> = a
 
     if ( cluster.isPrimary ) {
 
+      const server_workers = routing.set( 'server-workers', new Map() ).get( 'server-workers' );
       const path_to_ivy_server_exec = [
         path.dirname( new URL( import.meta.url ).pathname ),
         '..',
@@ -104,6 +105,9 @@ export const spin_cluster_cb: CallBackAsync<SpinClusterData, [spin:boolean]> = a
       cluster.on( 'fork', ( Worker ) => {
         if ( server_pid.includes( Worker.process.pid ) ) {
           process.stdout.write( ` ${ '|'.red() }${ '   wrk'.red().underline() }(${ Worker.id }) ${ Worker.process.pid }` );
+          if( server_workers ){
+            server_workers.set( Worker.id, Worker );
+          }
           const address = routing.get( 'address' );
           const port = routing.get( 'port' );
           if ( address && port ) {
@@ -116,6 +120,11 @@ export const spin_cluster_cb: CallBackAsync<SpinClusterData, [spin:boolean]> = a
       cluster.on( 'message', process_listener );
     }
     else if( cluster.isWorker ){
+
+      // HINT: plugin a complex module to handle this.
+      process.on( 'message', ( message ) => {
+        console.log( message );
+      } );
 
       // if control room is enabled
       if( routing.get( 'control-room' ) ){
@@ -290,7 +299,7 @@ async function spawn_log_persistent( invoked_flag: boolean | undefined, threads:
   }
 }
 
-async function spawn_socket( invoked_flag: boolean | undefined, threads: number | undefined ): Promise<void> {
+async function spawn_socket( invoked_flag: boolean | undefined ): Promise<void> {
 
   if( invoked_flag ){
     if( cluster.isPrimary ) {
@@ -298,7 +307,7 @@ async function spawn_socket( invoked_flag: boolean | undefined, threads: number 
       const socketConfigFile = await path.isFile( path.resolve( ...[ process.cwd(), 'socketConfig.js' ] ) ).catch( () => false );
       if( typeof socketConfigFile === 'string' ){
 
-        await socket( socketConfigFile, threads );
+        await socket( socketConfigFile );
       }
       else{
         process.stderr.write( 'No socketConfig.js file found.' );
