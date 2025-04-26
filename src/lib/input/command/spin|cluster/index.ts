@@ -1,6 +1,5 @@
 import { command, flag } from '@nutsloop/ivy-input';
 
-import { command_call } from '../../../logic.js';
 import { routing } from '../../../server/routing.js';
 import { spin_cluster_cb } from './cb.js';
 import { acme_challenge_cb } from './flag/acme-challenge/cb.js';
@@ -73,20 +72,17 @@ import { spin_cluster_description, spin_cluster_usage } from './man/index.js';
 
 export async function spin_cluster(){
 
-  const invoked_command = command_call.values().next().value;
-
-  // commands spin|cluster
+  // MARK: commands spin|cluster
   await command( [ 'spin', 'cluster' ], {
     cb: spin_cluster_cb,
     description: spin_cluster_description,
     has_flag: true,
-    rest: [ invoked_command === 'spin' ],
     usage: spin_cluster_usage
   } );
 
-  // spin|cluster flags
+  // MARK: spin|cluster flags
 
-  // --acme-challenge[-ac] flag
+  // MARK: --acme-challenge[-ac] flag
   await flag( [ '--acme-challenge', '-ac' ], {
     alias: 'acme-challenge',
     cb:{
@@ -99,7 +95,7 @@ export async function spin_cluster(){
     void: true
   } );
 
-  // --address[-a]
+  // MARK: --address[-a]
   await flag( [ '--address', '-a' ], {
     alias: 'address',
     cb: {
@@ -112,7 +108,7 @@ export async function spin_cluster(){
     usage: spin_cluster_address_usage
   } );
 
-  // --control-room[-cr]
+  // MARK: --control-room[-cr]
   await flag( [ '--control-room', '-cr' ], {
     alias: 'control-room',
     cb: {
@@ -125,7 +121,7 @@ export async function spin_cluster(){
     void: true
   } );
 
-  // --cut-user-agent[-cua]
+  // MARK: --cut-user-agent[-cua]
   await flag( [ '--cut-user-agent', '-cua' ], {
     alias: 'cut-user-agent',
     cb: {
@@ -138,7 +134,7 @@ export async function spin_cluster(){
     void: true
   } );
 
-  // --hot-routes[-hr]
+  // MARK: --hot-routes[-hr]
   await flag( [ '--hot-routes', '-hr' ], {
     alias: 'hot-routes',
     cb: {
@@ -151,7 +147,7 @@ export async function spin_cluster(){
     void: true
   } );
 
-  // --https[-S]
+  // MARK: --https[-S]
   await flag( [ '--https', '-S' ], {
     alias: 'https',
     cb: {
@@ -165,7 +161,7 @@ export async function spin_cluster(){
     usage: spin_cluster_https_usage
   } );
 
-  // --live-reload[-lr]
+  // MARK: --live-reload[-lr]
   await flag( [ '--live-reload', '-lr' ], {
     alias: 'live-reload',
     cb: {
@@ -179,7 +175,7 @@ export async function spin_cluster(){
     usage: spin_cluster_live_reload_usage,
   } );
 
-  // --log[-l]
+  // MARK: --log[-l]
   await flag( [ '--log', '-l' ], {
     alias: 'log',
     cb: {
@@ -192,7 +188,7 @@ export async function spin_cluster(){
     void: true
   } );
 
-  // --log-color[-lc]
+  // MARK: --log-color[-lc]
   await flag( [ '--log-color', '-lc' ], {
     alias: 'log-color',
     cb: {
@@ -206,7 +202,7 @@ export async function spin_cluster(){
     void: true
   } );
 
-  // --log-persistent[-lp]
+  // MARK: --log-persistent[-lp]
   await flag( [ '--log-persistent', '-lp' ], {
     alias: 'log-persistent',
     cb: {
@@ -217,11 +213,11 @@ export async function spin_cluster(){
     depends_on: [ '--log|-l' ],
     description: spin_cluster_log_persistent_description,
     is_flag_of: [ 'spin', 'cluster' ],
-    multi_type: [ 'void', 'number' ],
+    void: true,
     usage: spin_cluster_log_persistent_usage
   } );
 
-  // --log-request-headers[-lrh]
+  // MARK: --log-request-headers[-lrh]
   await flag( [ '--log-request-headers', '-lrh' ], {
     alias: 'log-request-header',
     cb: {
@@ -235,7 +231,7 @@ export async function spin_cluster(){
     is_flag_of: [ 'spin', 'cluster' ],
   } );
 
-  // --multi-domain[-md]
+  // MARK: --multi-domain[-md]
   await flag( [ '--multi-domain', '-md' ], {
     alias: 'multi-domain',
     cb: {
@@ -249,7 +245,7 @@ export async function spin_cluster(){
     usage: spin_cluster_multi_domain_usage,
   } );
 
-  // --mute-client-error[-mce]
+  // MARK: --mute-client-error[-mce]
   await flag( [ '--mute-client-error', '-mce' ], {
     alias: 'mute-client-error',
     cb:{
@@ -263,10 +259,9 @@ export async function spin_cluster(){
   } );
 
 
-  // --plugins[-P]
+  // ONGOING: --plugins[-P]
 
-
-  // --port[-p]
+  // MARK: --port[-p]
   await flag( [ '--port', '-p' ], {
     alias: 'port',
     cb: {
@@ -279,7 +274,7 @@ export async function spin_cluster(){
     usage: spin_cluster_port_usage
   } );
 
-  // --redirect-to[-rt]
+  // MARK: --redirect-to[-rt]
   await flag( [ '--redirect-to', '-rt' ], {
     alias: 'redirect-to',
     cb:{
@@ -292,7 +287,7 @@ export async function spin_cluster(){
     usage: spin_cluster_redirect_to_usage,
   } );
 
-  // --redirect-to-https[-rth]
+  // MARK: --redirect-to-https[-rth]
   await flag( [ '--redirect-to-https', '-rth' ], {
     alias: 'redirect-to-https',
     cb:{
@@ -307,7 +302,7 @@ export async function spin_cluster(){
     usage: spin_cluster_redirect_to_https_usage,
   } );
 
-  // --routes[-r]
+  // MARK: --routes[-r]
   await flag( [ '--routes', '-r' ], {
     alias: 'routes',
     cb: {
@@ -321,7 +316,7 @@ export async function spin_cluster(){
     usage: spin_cluster_routes_usage
   } );
 
-  // --served-by[-sb]
+  // MARK: --served-by[-sb]
   await flag( [ '--served-by', '-sb' ], {
     alias: 'served-by',
     cb: {
@@ -334,7 +329,7 @@ export async function spin_cluster(){
     usage: spin_cluster_served_by_usage
   } );
 
-  // --socket[-s]
+  // MARK: --socket[-s]
   await flag( [ '--socket', '-s' ], {
     alias: 'socket',
     cb: {
@@ -347,7 +342,7 @@ export async function spin_cluster(){
     usage: spin_cluster_socket_usage
   } );
 
-  // --to-index-html[-tih]
+  // MARK: --to-index-html[-tih]
   await flag( [ '--to-index-html', '-tih' ], {
     alias: 'to-index-html',
     cb: {
@@ -361,7 +356,7 @@ export async function spin_cluster(){
     void: true
   } );
 
-  // --virtual-routes[-vr]
+  // MARK: --virtual-routes[-vr]
   await flag( [ '--virtual-routes', '-vr' ], {
     alias: 'virtual-routes',
     cb: {
@@ -375,7 +370,7 @@ export async function spin_cluster(){
     usage: spin_cluster_virtual_routes_usage
   } );
 
-  // --www-root[-wr]
+  // MARK: --www-root[-wr]
   await flag( [ '--www-root', '-wr' ], {
     alias: 'www-root',
     cb: {
@@ -388,9 +383,9 @@ export async function spin_cluster(){
     usage: spin_cluster_www_root_usage
   } );
 
-  // cluster only flags
+  // MARK: cluster-only flags
 
-  // --cpus[-c]
+  // MARK: --cpus[-c]
   await flag( [ '--cpus', '-c' ], {
     alias: 'cpus',
     cb: {
@@ -403,7 +398,7 @@ export async function spin_cluster(){
     usage: cluster_cpus_usage
   } );
 
-  // --exec[-e]
+  // MARK: --exec[-e]
   await flag( [ '--exec', '-e' ], {
     alias: 'exec',
     cb: {
@@ -416,7 +411,9 @@ export async function spin_cluster(){
     usage: cluster_exec_usage
   } );
 
-  // experimentation
+  // MARK: experimentation
+
+  // MARK: --plugins[-P]
   await flag( [ '--plugins', '-P' ], {
     alias: 'plugins',
     cb: {
