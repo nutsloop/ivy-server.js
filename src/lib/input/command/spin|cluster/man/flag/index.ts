@@ -7,7 +7,7 @@ export const spin_cluster_address_usage = 'ivy-server spin|cluster --address[-a]
 export const cluster_cpus_description = `The number of cpus to use`;
 export const cluster_cpus_usage = 'ivy-server cluster --cpus=[number]';
 
-export const spin_cluster_control_room_description = `create a socket connection to stream server data and statiistic to a client application`;
+export const spin_cluster_control_room_description = `create a socket connection to stream server data and statistic to a client application`;
 export const spin_cluster_control_room_usage = 'ivy-server spin|cluster --control-room';
 
 export const spin_cluster_cut_user_agent_description = `cut the user agent from the log`;
@@ -28,13 +28,12 @@ export const spin_cluster_live_reload_usage = 'ivy-server spin|cluster --live-re
 export const spin_cluster_log_description = `Log the requests`;
 export const spin_cluster_log_usage = 'ivy-server spin|cluster --log';
 
-export const spin_cluster_log_color_description = `Color the log, it depend on the flag --log to be set`;
+export const spin_cluster_log_color_description = `Colour the log, it depends on the flag --log to be set`;
 export const spin_cluster_log_color_usage = 'ivy-server spin|cluster --log-color --log';
 
 export const spin_cluster_log_persistent_description = `Log requests on file/db anything, useful for debugging
    it requires the flag --log to be set
    it requires a logConfig.js file in the root of your project.
-   the given number to the flag it will cluster many threads to handle the requests.
 `;
 export const spin_cluster_log_persistent_usage = 'ivy-server spin|cluster --log --log-persistent';
 
