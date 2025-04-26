@@ -1,9 +1,7 @@
-import { Path } from '@nutsloop/ivy-cross-path';
+import type { Path } from '@nutsloop/ivy-cross-path';
+
 import cluster from 'node:cluster';
 
-import { routing } from '../server/routing.js';
-
-const path = new Path();
 
 /**
  * This interface defines the configuration for a persistent log.
@@ -27,7 +25,7 @@ export interface LogConfig {
 
 const worker_pid: ( number | undefined )[] = [];
 
-export async function log_persistent( log_config_path: string, threads?: number, ): Promise<void> {
+export async function main( log_config_path: string, control_room_is_active: boolean, path: Path ): Promise<void> {
 
   const ivy_log_worker = [
     path.dirname( new URL( import.meta.url ).pathname ),
@@ -35,17 +33,13 @@ export async function log_persistent( log_config_path: string, threads?: number,
     'worker.js',
   ];
 
-  const control_room = routing.get( 'control-room' ) || false;
+  const control_room = control_room_is_active;
   cluster.setupPrimary( {
     args: [ log_config_path, control_room.toString() ],
     exec: path.resolve( ...ivy_log_worker ),
   } );
 
-  if( typeof threads === 'number' ) {
-    for ( let i = 0; i < threads; i ++ ) {
-      worker_pid.push( cluster.fork().process.pid );
-    }
-  }
+  worker_pid.push( cluster.fork().process.pid );
 
   cluster.on( 'exit', ( _Worker, _code, _signal ) => {
     if ( worker_pid.includes( _Worker.process.pid ) ) {
@@ -67,30 +61,12 @@ export async function log_persistent( log_config_path: string, threads?: number,
   } );
   cluster.on( 'online', ( _Worker ) => {} );
   cluster.on( 'disconnect', ( _Worker ) => {} );
-  cluster.on( 'message', async ( _Worker, message, _Handle ) => {
+
+  cluster.on( 'message', async ( Worker, message, _Handle ) => {
     if ( message?.log ) {
-      if ( cluster.workers ) {
-        const log_workers = [];
-        for ( const worker of Object.values( cluster.workers ) ) {
-          if ( worker !== undefined ) {
-            if ( worker_pid.includes( worker.process.pid ) ) {
-              log_workers.push( worker );
-            }
-          }
-        }
-        log_workers[ get_random_worker( log_workers.length ) ].send( message.log );
+      if ( worker_pid.includes( Worker.process.pid ) ) {
+        Worker.send( message.log );
       }
     }
   } );
-}
-
-function get_random_worker( workers_length: number ): number {
-  if ( workers_length === 1 ) {
-    return 0;
-  }
-
-  const min_ceiled = Math.ceil( 0 );
-  const max_floored = Math.floor( workers_length - 1 );
-
-  return Math.floor( Math.random() * ( max_floored - min_ceiled + 1 ) + min_ceiled );
 }
