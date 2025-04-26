@@ -58,8 +58,6 @@ export async function main( command: 'spin' | 'cluster', data: SpinClusterData )
         path.dirname( new URL( import.meta.url ).pathname ),
         '..',
         '..',
-        '..',
-        '..',
         'bin',
         'server.js'
       ];
