@@ -105,7 +105,7 @@ These flags are shared across both ``spin`` and ``cluster``.
      - void
      - Colorize log output (requires ``--log``).
    * - ``--log-persistent``, ``-lp``
-     - void/number
+     - void
      - Persist logs via file/db (requires ``logConfig.js``).
    * - ``--log-request-headers``, ``-lrh``
      - void
@@ -135,7 +135,7 @@ These flags are shared across both ``spin`` and ``cluster``.
      - string
      - Set ``served-by`` HTTP header.
    * - ``--socket``, ``-s``
-     - number/void
+     - void
      - Enable socket/tls connection (requires ``socketConfig.js``).
    * - ``--to-index-html``, ``-tih``
      - void

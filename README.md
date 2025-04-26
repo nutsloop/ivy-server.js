@@ -141,31 +141,31 @@ ivy-server --ease --ease-cluster cluster --port=80 --cpus=32
 ```
 
 ### 🛠️ Common Flags
-| Flag                            | Type          | Description                                                          |
-|---------------------------------|---------------|----------------------------------------------------------------------|
-| `--address`, `-a`               | `string`      | Address to bind the server (default: `0.0.0.0`).                     |
-| `--port`, `-p`                  | `number`      | Port to run the server on (default: `3001`).                         |
-| `--https`, `-S`                 | `void\KVP`    | Enable HTTPS.                                                        |
-| `--log`, `-l`                   | `void`        | Enable request logging.                                              |
-| `--log-color`, `-lc`            | `void`        | Colorize log output (requires `--log`).                              |
-| `--log-persistent`, `-lp`       | `void\number` | Persist logs to file/db (requires `logConfig.js`).                   |
-| `--log-request-headers`, `-lrh` | `void`        | Log request headers (requires `--log`).                              |
-| `--acme-challenge`, `-ac`       | `void`        | Serve ACME challenge files, skipping redirects/multidomain.          |
-| `--control-room`, `-cr`         | `void`        | Open a socket for stats/control panel.                               |
-| `--cut-user-agent`, `-cua`      | `void`        | Hide the user-agent in logs.                                         |
-| `--hot-routes`, `-hr`           | `void`        | Enable hot reloading of routes.                                      |
-| `--live-reload`, `-lr`          | `void/KVP`    | Live reload server when files change.                                |
-| `--multi-domain`, `-md`         | `string`      | Load multidomain config from file.                                   |
-| `--mute-client-error`, `-mce`   | `void`        | Suppress client error logs.                                          |
-| `--routes`, `-r`                | `string`      | Path to custom routes file.                                          |
-| `--virtual-routes`, `-vr`       | `string`      | Declare STATUS_CODE 200 for addresses (used with `--to-index-html`). |
-| `--to-index-html`, `-tih`       | `void`        | Route all requests to `index.html`.                                  |
-| `--plugins`, `-P`               | `array`       | Load list of comma-separated plugins.                                |
-| `--served-by`, `-sb`            | `string`      | Set a custom `served-by` HTTP header.                                |
-| `--socket`, `-s`                | `void/number` | Enable socket/tls connection (requires `socketConfig.js`).           |
-| `--redirect-to`, `-rt`          | `string`      | Redirect requests to another URL (e.g., 301 redirects).              |
-| `--redirect-to-https`, `-rth`   | `void`        | Redirect requests to HTTPS (works with `--redirect-to`).             |
-| `--www-root`, `-wr`             | `string`      | Directory for static content.                                        |
+| Flag                            | Type       | Description                                                          |
+|---------------------------------|------------|----------------------------------------------------------------------|
+| `--address`, `-a`               | `string`   | Address to bind the server (default: `0.0.0.0`).                     |
+| `--port`, `-p`                  | `number`   | Port to run the server on (default: `3001`).                         |
+| `--https`, `-S`                 | `void\KVP` | Enable HTTPS.                                                        |
+| `--log`, `-l`                   | `void`     | Enable request logging.                                              |
+| `--log-color`, `-lc`            | `void`     | Colorize log output (requires `--log`).                              |
+| `--log-persistent`, `-lp`       | `void`     | Persist logs to file/db (requires `logConfig.js`).                   |
+| `--log-request-headers`, `-lrh` | `void`     | Log request headers (requires `--log`).                              |
+| `--acme-challenge`, `-ac`       | `void`     | Serve ACME challenge files, skipping redirects/multidomain.          |
+| `--control-room`, `-cr`         | `void`     | Open a socket for stats/control panel.                               |
+| `--cut-user-agent`, `-cua`      | `void`     | Hide the user-agent in logs.                                         |
+| `--hot-routes`, `-hr`           | `void`     | Enable hot reloading of routes.                                      |
+| `--live-reload`, `-lr`          | `void/KVP` | Live reload server when files change.                                |
+| `--multi-domain`, `-md`         | `string`   | Load multidomain config from file.                                   |
+| `--mute-client-error`, `-mce`   | `void`     | Suppress client error logs.                                          |
+| `--routes`, `-r`                | `string`   | Path to custom routes file.                                          |
+| `--virtual-routes`, `-vr`       | `string`   | Declare STATUS_CODE 200 for addresses (used with `--to-index-html`). |
+| `--to-index-html`, `-tih`       | `void`     | Route all requests to `index.html`.                                  |
+| `--plugins`, `-P`               | `array`    | Load list of comma-separated plugins.                                |
+| `--served-by`, `-sb`            | `string`   | Set a custom `served-by` HTTP header.                                |
+| `--socket`, `-s`                | `void`     | Enable socket/tls connection (requires `socketConfig.js`).           |
+| `--redirect-to`, `-rt`          | `string`   | Redirect requests to another URL (e.g., 301 redirects).              |
+| `--redirect-to-https`, `-rth`   | `void`     | Redirect requests to HTTPS (works with `--redirect-to`).             |
+| `--www-root`, `-wr`             | `string`   | Directory for static content.                                        |
 
 
 ### 🧠 Cluster-Specific Flags
