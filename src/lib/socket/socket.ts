@@ -1,12 +1,11 @@
+import type { Path } from '@nutsloop/ivy-cross-path';
 import type { ServerOpts, Socket } from 'node:net';
 import type { TLSSocket, TlsOptions } from 'node:tls';
 
-import { Path } from '@nutsloop/ivy-cross-path';
 import cluster from 'node:cluster';
 
 import { routing } from '../server/routing.js';
 
-const path = new Path();
 
 export interface SocketConfig{
   hostname: string;
@@ -19,7 +18,7 @@ export interface SocketConfig{
 
 let worker_pid = 0;
 
-export async function socket( socket_config_path: string ): Promise<void> {
+export async function main( socket_config_path: string, path: Path ): Promise<void> {
 
   const ivy_socket_worker = [
     path.dirname( new URL( import.meta.url ).pathname ),
