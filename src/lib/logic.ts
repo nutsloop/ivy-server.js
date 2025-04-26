@@ -6,7 +6,6 @@ import { cli, run, set_global_flag_declaration } from '@nutsloop/ivy-input';
 import { definition } from './input/definition.js';
 extends_proto();
 
-export const command_call: Set<string> = new Set();
 const use_interface: Set<boolean> = new Set();
 
 /**
@@ -20,14 +19,6 @@ export const logic: CLILogic = async ( parsed_argv: ParsedArgv ): Promise<void> 
       'See: https://ivy-server.nutsloop.com/cli.html#exec-flag' );
   }
 
-  // necessary to switch between spin and cluster commands.
-  const command = parsed_argv.get( 'command' );
-  if ( command ) {
-    const commandValue = command.keys().next().value;
-    if ( commandValue ) {
-      command_call.add( commandValue );
-    }
-  }
   await definition().catch( console.error );
 
   await cli( parsed_argv )
@@ -39,7 +30,9 @@ export const logic: CLILogic = async ( parsed_argv: ParsedArgv ): Promise<void> 
  */
 export async function entry_point( argv: string[] | undefined = undefined, use_interface_switch: boolean = false ): Promise<void> {
 
-  use_interface_switch === true ? use_interface.add( true ) : use_interface.add( false );
+  use_interface_switch
+    ? use_interface.add( true )
+    : use_interface.add( false );
 
   const global_flag_declaration = new Map();
   global_flag_declaration.set( 'has_global', true );
